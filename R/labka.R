@@ -15,7 +15,7 @@ read_labka_data <- function(path, file_type="xlsx", identifier = FALSE) {
 
     # Read file (Currently only for XLXS - what I usually recieve from Simon (KBA).)
     if(file_type == "xlsx") {
-        dat <- suppressWarnings(readxl::read_xlsx(path))
+        dat <- backports::suppressWarnings(readxl::read_xlsx(path))
     }
 
     # Clean data
@@ -66,7 +66,7 @@ combine_redcap_labka <- function(labka_data, redcap_data, identifier = FALSE) {
 
     # Check if return identifer (CPR number)
     if(identifier == FALSE) {
-        dat <- dat %>%
+        dat <- combined %>%
             dplyr::select(-cpr_number)
     }
 
