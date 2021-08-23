@@ -5,6 +5,7 @@
 #' @param column_types vector | Define column data types. Is in the order as displayed on redcap.
 #' @param url string | Link to API website
 #' @param identifier bool | Whether or not to include CPR number in the return. You must have CPR number in your data when combining data with labka data.
+#' @param filter str | Filter out given data. Currently supported: 1. NAFLD - Removes people with 5% or more liver fat in the control and obese group
 #'
 #' @note If you wish to combine lakba with redcap data you must include CPR number (identifier = TRUE)
 #' @return tibble
@@ -14,7 +15,7 @@
 #' read_redcap(token = "2wssajsaj221812j28",
 #'             columns = c(bmi, weight),
 #'             url = "https://redcap.rn.dk/api/")
-read_redcap <- function(token, columns=NULL, column_types=NULL, url="https://redcap.rn.dk/api/", identifier = FALSE) {
+read_redcap <- function(token, columns=NULL, column_types=NULL, url="https://redcap.rn.dk/api/", identifier = FALSE, filter = FALSE) {
 
     # Check that columns are actually present inside redcap
     redcap_codes <- redcap_codebook(token = token)
@@ -94,6 +95,20 @@ read_redcap <- function(token, columns=NULL, column_types=NULL, url="https://red
         dplyr::select(-"redcap_event_name") %>%
         dplyr::rename(start_date = visit_date_1, cpr_number = cpr_nummer) %>%
         dplyr::relocate(participant_id, cpr_number, start_date, group, visit)
+
+    # Filters data
+    if(filter == "NAFLD") {
+        if(!is.null(dat$pdff_liver_cirle_mean)) {
+            print("Filtering on NAFLD based on circular ROI's")
+            dat <- filter_nafld(dat = dat, token = token, arg = "pdff_liver_cirle_mean")
+        } else if(!is.null(dat$pdff_liver_freehand)) {
+            print("Filtering on NAFLD based on freehand ROI")
+            dat <- filter_nafld(dat = dat, token = token, arg = "pdff_liver_freehand")
+        } else {
+            print("Filtering on NAFLD. PDFF measurment is not in data. Filtering on liver cirle mean.")
+            dat <- suppressWarnings(filter_nafld(dat = dat, token = token))
+        }
+    }
 
     # Check if return identifer (CPR number)
     if(identifier == FALSE) {

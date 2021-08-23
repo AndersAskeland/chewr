@@ -9,7 +9,8 @@ read_redcap(
   columns = NULL,
   column_types = NULL,
   url = "https://redcap.rn.dk/api/",
-  identifier = FALSE
+  identifier = FALSE,
+  filter = FALSE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ read_redcap(
 \item{url}{string | Link to API website}
 
 \item{identifier}{bool | Whether or not to include CPR number in the return. You must have CPR number in your data when combining data with labka data.}
+
+\item{filter}{str | Filter out given data. Currently supported: 1. NAFLD - Removes people with 5\% or more liver fat in the control and obese group}
 }
 \value{
 tibble

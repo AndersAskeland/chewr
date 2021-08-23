@@ -15,7 +15,7 @@ read_labka_data <- function(path, file_type="xlsx", identifier = FALSE) {
 
     # Read file (Currently only for XLXS - what I usually recieve from Simon (KBA).)
     if(file_type == "xlsx") {
-        dat <- backports::suppressWarnings(readxl::read_xlsx(path))
+        dat <- suppressWarnings(readxl::read_xlsx(path))
     }
 
     # Clean data
