@@ -1,6 +1,6 @@
 #' Extracts data from redcap (using RCurl) and writes it to a easy to use tibble.
+#' API token is colleced using R studio api when function is run.
 #'
-#' @param token numeric | API token from redcap
 #' @param columns vector | Can contain up to 20 different variables. Use function "redcap_codebook()" to view avaliable variables.
 #' @param column_types vector | Define column data types. Is in the order as displayed on redcap.
 #' @param url string | Link to API website
@@ -15,7 +15,10 @@
 #' read_redcap(token = "2wssajsaj221812j28",
 #'             columns = c(bmi, weight),
 #'             url = "https://redcap.rn.dk/api/")
-read_redcap <- function(token, columns=NULL, column_types=NULL, url="https://redcap.rn.dk/api/", identifier = FALSE, filter = FALSE) {
+read_redcap <- function(columns=NULL, column_types=NULL, url="https://redcap.rn.dk/api/", identifier = FALSE, filter = FALSE) {
+
+    # Get token
+    token <- rstudioapi::askForPassword(prompt = "Please enter your API key")
 
     # Check that columns are actually present inside redcap
     redcap_codes <- redcap_codebook(token = token)
@@ -121,8 +124,8 @@ read_redcap <- function(token, columns=NULL, column_types=NULL, url="https://red
 }
 
 #' Extract avaliable data variables from a redcap projet.
+#' R studio API collects API key.
 #'
-#' @param token string | API token from redcap
 #' @param url string | Link to API website
 #'
 #' @return tibble
@@ -131,7 +134,10 @@ read_redcap <- function(token, columns=NULL, column_types=NULL, url="https://red
 #' @examples
 #' redap_codebook(token = "dsadas8e218271732172313712",
 #'                url = "https://redcap.rn.dk/api/")
-redcap_codebook <- function(token, url="https://redcap.rn.dk/api/") {
+redcap_codebook <- function(url="https://redcap.rn.dk/api/") {
+
+    # Get token
+    token <- rstudioapi::askForPassword(prompt = "Please enter your API key")
 
     # API call
     export <- RCurl::postForm(
