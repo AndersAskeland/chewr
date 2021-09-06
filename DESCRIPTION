@@ -22,4 +22,5 @@ Imports:
     readr,
     dplyr,
     magrittr,
-    ggplot2
+    ggplot2,
+    ggpubr
