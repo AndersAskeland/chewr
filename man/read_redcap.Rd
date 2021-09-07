@@ -35,7 +35,6 @@ API token is colleced using R studio api when function is run.
 If you wish to combine lakba with redcap data you must include CPR number (identifier = TRUE)
 }
 \examples{
-read_redcap(token = "2wssajsaj221812j28",
-            columns = c(bmi, weight),
+read_redcap(columns = c("bmi", "weight"),
             url = "https://redcap.rn.dk/api/")
 }
