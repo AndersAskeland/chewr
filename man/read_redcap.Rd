@@ -2,10 +2,10 @@
 % Please edit documentation in R/redcap.R
 \name{read_redcap}
 \alias{read_redcap}
-\title{Extracts data from redcap (using RCurl) and writes it to a easy to use tibble.}
+\title{Extracts data from redcap (using RCurl) and writes it to a easy to use tibble.
+API token is colleced using R studio api when function is run.}
 \usage{
 read_redcap(
-  token,
   columns = NULL,
   column_types = NULL,
   url = "https://redcap.rn.dk/api/",
@@ -14,8 +14,6 @@ read_redcap(
 )
 }
 \arguments{
-\item{token}{numeric | API token from redcap}
-
 \item{columns}{vector | Can contain up to 20 different variables. Use function "redcap_codebook()" to view avaliable variables.}
 
 \item{column_types}{vector | Define column data types. Is in the order as displayed on redcap.}
@@ -31,6 +29,7 @@ tibble
 }
 \description{
 Extracts data from redcap (using RCurl) and writes it to a easy to use tibble.
+API token is colleced using R studio api when function is run.
 }
 \note{
 If you wish to combine lakba with redcap data you must include CPR number (identifier = TRUE)

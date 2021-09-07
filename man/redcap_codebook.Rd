@@ -2,13 +2,12 @@
 % Please edit documentation in R/redcap.R
 \name{redcap_codebook}
 \alias{redcap_codebook}
-\title{Extract avaliable data variables from a redcap projet.}
+\title{Extract avaliable data variables from a redcap projet.
+R studio API collects API key.}
 \usage{
-redcap_codebook(token, url = "https://redcap.rn.dk/api/")
+redcap_codebook(url = "https://redcap.rn.dk/api/")
 }
 \arguments{
-\item{token}{string | API token from redcap}
-
 \item{url}{string | Link to API website}
 }
 \value{
@@ -16,6 +15,7 @@ tibble
 }
 \description{
 Extract avaliable data variables from a redcap projet.
+R studio API collects API key.
 }
 \examples{
 redap_codebook(token = "dsadas8e218271732172313712",

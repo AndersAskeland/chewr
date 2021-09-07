@@ -12,13 +12,12 @@
 #' @export
 #'
 #' @examples
-#' read_redcap(token = "2wssajsaj221812j28",
-#'             columns = c(bmi, weight),
+#' read_redcap(columns = c("bmi", "weight"),
 #'             url = "https://redcap.rn.dk/api/")
 read_redcap <- function(columns=NULL, column_types=NULL, url="https://redcap.rn.dk/api/", identifier = FALSE, filter = FALSE) {
 
     # Get token
-    token <- rstudioapi::askForPassword(prompt = "Please enter your API key")
+    api_token <- rstudioapi::askForPassword(prompt = "Please enter your API key")
 
     # Check that columns are actually present inside redcap
     redcap_codes <- redcap_codebook(token = token)
@@ -33,7 +32,7 @@ read_redcap <- function(columns=NULL, column_types=NULL, url="https://redcap.rn.
     # Extract data via curl
     export <- RCurl::postForm(
         uri=url,
-        token=token,
+        token=api_token,
         content='record',
         format='csv',
         type='flat',
@@ -103,13 +102,13 @@ read_redcap <- function(columns=NULL, column_types=NULL, url="https://redcap.rn.
     if(filter == "NAFLD") {
         if(!is.null(dat$pdff_liver_cirle_mean)) {
             print("Filtering on NAFLD based on circular ROI's")
-            dat <- filter_nafld(dat = dat, token = token, arg = "pdff_liver_cirle_mean")
+            dat <- filter_nafld(dat = dat, token = api_token, arg = "pdff_liver_cirle_mean")
         } else if(!is.null(dat$pdff_liver_freehand)) {
             print("Filtering on NAFLD based on freehand ROI")
-            dat <- filter_nafld(dat = dat, token = token, arg = "pdff_liver_freehand")
+            dat <- filter_nafld(dat = dat, token = api_token, arg = "pdff_liver_freehand")
         } else {
             print("Filtering on NAFLD. PDFF measurment is not in data. Filtering on liver cirle mean.")
-            dat <- suppressWarnings(filter_nafld(dat = dat, token = token))
+            dat <- suppressWarnings(filter_nafld(dat = dat, token = api_token))
         }
     }
 
