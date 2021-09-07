@@ -10,9 +10,9 @@ My personal R package. Contains various functions for my daily data and statisti
 
 ## Installation
 ``` r
-# If you dont have dev tools
+# If you do not have the devtools package installed run:
 install.packages("devtools")
 
-# Install package
+# Install chewr package
 devtools::install_github("andersaskeland/chewr")
 ```
