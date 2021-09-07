@@ -10,7 +10,8 @@ read_redcap(
   column_types = NULL,
   url = "https://redcap.rn.dk/api/",
   identifier = FALSE,
-  filter = FALSE
+  filter = FALSE,
+  api_token = NULL
 )
 }
 \arguments{

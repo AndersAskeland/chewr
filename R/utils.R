@@ -35,7 +35,7 @@ filter_nafld <- function(dat, token, arg = NULL) {
     # Check if liver fat is included in data. If not retrieve it
     if(is.null(arg)) {
         arg <- "pdff_liver_cirle_mean"
-        dat_copy <- read_redcap(token = token, columns = arg)
+        dat_copy <- read_redcap(columns = arg, api_token = token)
     }
 
     # Find IDs to remove

@@ -62,7 +62,7 @@ combine_redcap_labka <- function(labka_data, redcap_data, identifier = FALSE) {
     }
 
     # Combine redcap with labka_data
-    combined <- left_join(redcap_data, labka_data, by = c("cpr_number" = "cpr_number", "start_date" = "date"))
+    combined <- dplyr::left_join(redcap_data, labka_data, by = c("cpr_number" = "cpr_number", "start_date" = "date"))
 
     # Check if return identifer (CPR number)
     if(identifier == FALSE) {

@@ -6,6 +6,7 @@
 #' @param url string | Link to API website
 #' @param identifier bool | Whether or not to include CPR number in the return. You must have CPR number in your data when combining data with labka data.
 #' @param filter str | Filter out given data. Currently supported: 1. NAFLD - Removes people with 5% or more liver fat in the control and obese group
+#' @param api_token str | API token for redcap. It is usually best to not provide the API token in plan text. And instead leave this to NULL.
 #'
 #' @note If you wish to combine lakba with redcap data you must include CPR number (identifier = TRUE)
 #' @return tibble
@@ -14,10 +15,14 @@
 #' @examples
 #' read_redcap(columns = c("bmi", "weight"),
 #'             url = "https://redcap.rn.dk/api/")
-read_redcap <- function(columns=NULL, column_types=NULL, url="https://redcap.rn.dk/api/", identifier = FALSE, filter = FALSE) {
+read_redcap <- function(columns=NULL, column_types=NULL, url="https://redcap.rn.dk/api/", identifier = FALSE, filter = FALSE, api_token = NULL) {
 
-    # Get token
-    api_token <- rstudioapi::askForPassword(prompt = "Please enter your API key")
+    # TODO: Use ... arguments for token.
+
+    # Get token if not provided
+    if(is.null(api_token)) {
+        api_token <- rstudioapi::askForPassword(prompt = "Please enter your API key")
+    }
 
     # Check that columns are actually present inside redcap
     redcap_codes <- redcap_codebook(token = token)
