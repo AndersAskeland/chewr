@@ -5,7 +5,7 @@
 \title{Extract avaliable data variables from a redcap projet.
 R studio API collects API key.}
 \usage{
-redcap_codebook(url = "https://redcap.rn.dk/api/")
+redcap_codebook(url = "https://redcap.rn.dk/api/", ...)
 }
 \arguments{
 \item{url}{string | Link to API website}

@@ -17,7 +17,7 @@
 #'             url = "https://redcap.rn.dk/api/")
 read_redcap <- function(columns=NULL, column_types=NULL, url="https://redcap.rn.dk/api/", identifier = FALSE, filter = FALSE, ...) {
 
-    # Extract dotdotdot args
+    # Extract ... args
     args <- list(...)
 
     # Set API token
@@ -108,19 +108,27 @@ read_redcap <- function(columns=NULL, column_types=NULL, url="https://redcap.rn.
 
     # Filters data
     if(filter == "NAFLD") {
-        if(!is.null(dat$pdff_liver_cirle_mean)) {
-            print("Filtering on NAFLD based on circular ROI's")
-            dat <- filter_nafld(dat = dat, token = api_token, arg = "pdff_liver_cirle_mean")
-        } else if(!is.null(dat$pdff_liver_freehand)) {
-            print("Filtering on NAFLD based on freehand ROI")
-            dat <- filter_nafld(dat = dat, token = api_token, arg = "pdff_liver_freehand")
+        print("Removing controls and obese participants that have NAFLD (>5% liver fat)")
+
+        if("pdff_liver_cirle_mean" %in% names(dat)) {
+            print("    >>> Filtered using circular ROI's")
+            dat <- filter_nafld(dat = dat,
+                                token = api_token,
+                                arg = "pdff_liver_cirle_mean")
+        } else if("pdff_liver_freehand" %in% names(dat)) {
+            print("    >>> Filtered using freehand ROI's")
+            dat <- filter_nafld(dat = dat,
+                                token = api_token,
+                                arg = "pdff_liver_freehand")
         } else {
-            print("Filtering on NAFLD. PDFF measurment is not in data. Filtering on liver cirle mean.")
-            dat <- suppressWarnings(filter_nafld(dat = dat, token = api_token))
+            print("    >>> PDFF measurment is not found in supplied data.")
+            print("    >>> Automatically filtering on lusing circular ROI's")
+            dat <- filter_nafld(dat = dat,
+                                token = api_token)
         }
     }
 
-    # Check if return identifer (CPR number)
+    # Check if function should return identifier (CPR number)
     if(identifier == FALSE) {
         dat <- dat %>%
             dplyr::select(-cpr_number)
@@ -130,7 +138,7 @@ read_redcap <- function(columns=NULL, column_types=NULL, url="https://redcap.rn.
     return(dat)
 }
 
-#' Extract avaliable data variables from a redcap projet.
+#' Extract available data variables from a redcap project.
 #' R studio API collects API key.
 #'
 #' @param url string | Link to API website
@@ -145,7 +153,6 @@ redcap_codebook <- function(url="https://redcap.rn.dk/api/", ...) {
 
     # Extract args
     args <- list(...)
-    print(args)
 
     # Set API token
     if(!exists("api_token", where = args, inherits = FALSE) || is.null(args$api_token)) {
