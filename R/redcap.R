@@ -17,13 +17,18 @@
 #'             url = "https://redcap.rn.dk/api/")
 read_redcap <- function(columns=NULL, column_types=NULL, url="https://redcap.rn.dk/api/", identifier = FALSE, filter = FALSE, ...) {
 
-    # Get token if not provided
-    if(is.null(api_token)) {
+    # Extract dotdotdot args
+    args <- list(...)
+
+    # Set API token
+    if(!exists("api_token", where = args, inherits = FALSE) || is.null(args$api_token)) {
         api_token <- rstudioapi::askForPassword(prompt = "Please enter your API key")
+    } else {
+        api_token <- args$api_token
     }
 
-    # Check that columns are actually present inside redcap
-    redcap_codes <- redcap_codebook(token = api_token)
+    # Check that columns are valid (they exist in the redcap codebook)
+    redcap_codes <- redcap_codebook(api_token = api_token)
     columns_tidy <- columns
     for(i in seq_along(columns)) {
         if(!columns[i] %in% dplyr::pull(redcap_codes)) {
@@ -136,15 +141,23 @@ read_redcap <- function(columns=NULL, column_types=NULL, url="https://redcap.rn.
 #' @examples
 #' redap_codebook(token = "dsadas8e218271732172313712",
 #'                url = "https://redcap.rn.dk/api/")
-redcap_codebook <- function(url="https://redcap.rn.dk/api/") {
+redcap_codebook <- function(url="https://redcap.rn.dk/api/", ...) {
 
-    # Get token
-    token <- rstudioapi::askForPassword(prompt = "Please enter your API key")
+    # Extract args
+    args <- list(...)
+    print(args)
+
+    # Set API token
+    if(!exists("api_token", where = args, inherits = FALSE) || is.null(args$api_token)) {
+        api_token <- rstudioapi::askForPassword(prompt = "Please enter your API key")
+    } else {
+        api_token <- args$api_token
+    }
 
     # API call
     export <- RCurl::postForm(
         uri=url,
-        token=token,
+        token=api_token,
         content='exportFieldNames',
         format='csv',
         returnFormat='csv'
