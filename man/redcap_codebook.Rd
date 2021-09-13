@@ -2,7 +2,7 @@
 % Please edit documentation in R/redcap.R
 \name{redcap_codebook}
 \alias{redcap_codebook}
-\title{Extract avaliable data variables from a redcap projet.
+\title{Extract available data variables from a redcap project.
 R studio API collects API key.}
 \usage{
 redcap_codebook(url = "https://redcap.rn.dk/api/", ...)
@@ -14,7 +14,7 @@ redcap_codebook(url = "https://redcap.rn.dk/api/", ...)
 tibble
 }
 \description{
-Extract avaliable data variables from a redcap projet.
+Extract available data variables from a redcap project.
 R studio API collects API key.
 }
 \examples{
