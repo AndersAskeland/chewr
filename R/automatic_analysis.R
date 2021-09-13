@@ -64,6 +64,8 @@ extract_participant_end_parameters <- function(partcipant_id) {
         dplyr::ungroup() %>%
         dplyr::select(-c(start_date, group, participant_id)) %>%
         gt::gt(groupname_col = "visit") %>%
+        gt::tab_header(
+            title = gt::md(paste0("Information about participant **", partcipant_id, "**"))) %>%
         gt::cols_merge(
             columns = c(systolic_bp_avg, diastolic_bp_avg),
             pattern = "{1}/{2}") %>%
