@@ -178,3 +178,132 @@ redcap_codebook <- function(url="https://redcap.rn.dk/api/", ...) {
     # Return
     return(dat)
 }
+
+#' Takes a redcap export file as input and changes redcap arm on participant
+#'
+#' @param export_dir str | Export file path
+#' @param file_location str | File location path
+#'
+#' @return None
+#' @export
+#'
+#' @examples
+#' redcaå_allocate(file_location = "/home/test.csv")
+redcap_allocate <- function(file_location, export_dir = "/Users/andersaskeland/Documents/Multisite (Local)/5 - Redcap/Import/") {
+
+    # Read file
+    df <- readr::read_csv(file = file_location, col_types = readr::cols())
+
+    # Generate new participant ID (4*** to 3***)
+    df$participant_id <- df$participant_id - 1000
+
+    # Change enrollment arm
+    if(df$group == 0) {
+        message_text <- paste(">>> ", df$participant_id, "transfered to intervention!")
+        df$redcap_event_name <- "enrolment_arm_3"
+    } else if(df$group == 1) {
+        message_text <- paste(">>> ", df$participant_id, "transfered to obese!")
+        df$redcap_event_name <- "enrolment_arm_2"
+    } else if(df$group == 2) {
+        message_text <- paste(">>> ", df$participant_id, "transfered to excluded!")
+        df$redcap_event_name <- "enrolment_arm_5"
+    }
+
+    # Write data
+    file_name <- paste0(export_dir, "redcap_allocation_import", "_", (df$participant_id + 1000), "-", df$participant_id, ".csv")
+    readr::write_csv(df, file = file_name, na = "")
+
+    # Print message
+    message(message_text)
+}
+
+#' Automatically transfer participant from allocation group to supplied group
+#'
+#' @param participant_id
+#' @param url
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+redcap_allocate_automatic <- function(participant_id, url="https://redcap.rn.dk/api/", ...) {
+
+    # Error out if ID not supported
+    if(participant_id < 4000 || participant_id > 4999) {
+        warning("Participant ID is not supported (Supported ID's: 3000 > 4000)")
+        return(0)
+    }
+
+    # Extract ... args
+    args <- list(...)
+
+    # Set API token
+    if(!exists("api_token", where = args, inherits = FALSE) || is.null(args$api_token)) {
+        api_token <- rstudioapi::askForPassword(prompt = "Please enter your API key")
+    } else {
+        api_token <- args$api_token
+    }
+
+    # Extract data via curl
+    export <- RCurl::postForm(
+        uri=url,
+        token=api_token,
+        content='record',
+        format='csv',
+        type='flat',
+        csvDelimiter='',
+        'records[0]'=participant_id,
+        'events[2]'='enrolment_arm_4',
+        rawOrLabel='raw',
+        rawOrLabelHeaders='raw',
+        exportCheckboxLabel='false',
+        exportSurveyFields='false',
+        exportDataAccessGroups='false',
+        returnFormat='csv',
+        .opts = list(ssl.verifypeer = TRUE)
+        )
+
+    # Turn into tibble
+    df <- readr::read_csv(export, col_types = readr::cols())
+
+    # Check if event is allocation group
+    if(df$redcap_event_name != "enrolment_arm_4") {
+        warning("Record is not in allocation arm.")
+        return(0)
+    }
+
+    # Change participant ID from 4*** to 3*** and change enrollment arm
+    df$participant_id <- df$participant_id - 1000
+    if(df$group == 0) {
+        message_text <- paste(">>> ", df$participant_id, "transfered to intervention!")
+        df$redcap_event_name <- "enrolment_arm_3"
+    } else if(df$group == 1) {
+        message_text <- paste(">>> ", df$participant_id, "transfered to obese!")
+        df$redcap_event_name <- "enrolment_arm_2"
+    } else if(df$group == 2) {
+        message_text <- paste(">>> ", df$participant_id, "transfered to excluded!")
+        df$redcap_event_name <- "enrolment_arm_5"
+    }
+
+    # Check if already present
+    if(check_record(participant_id=df$participant_id, enrolment_arm = df$redcap_event_name, api_token = api_token) == FALSE) {
+        warning("Participant ", df$participant_id, " already exist in ", df$redcap_event_name, ". Function stopped.")
+        return(0)
+    }
+
+    # Import into correct group
+    result <- RCurl::postForm(
+        token=api_token,
+        uri=url,
+        content='record',
+        format='csv',
+        type='flat',
+        overwriteBehavior='normal',
+        forceAutoNumber='false',
+        data=readr::format_csv(df, na = "")
+    )
+
+    # Message
+    message(message_text, " Return code: ", result)
+}

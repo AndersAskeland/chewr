@@ -108,6 +108,4 @@ extract_participant_end_parameters <- function(partcipant_id) {
 
     # Return
     table
-
-
 }

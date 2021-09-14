@@ -50,3 +50,54 @@ filter_nafld <- function(dat, token, arg = NULL) {
     return(dat)
 }
 
+#' Checks if participant ID already exist inside given redcap arm.
+#'
+#' @param participant_id str
+#' @param enrolment_arm str
+#' @param url str
+#' @param ...
+#'
+#' @return bool
+#'
+#' @examples
+check_record <- function(participant_id, enrolment_arm, url="https://redcap.rn.dk/api/", ...) {
+
+    # Extract ... args
+    args <- list(...)
+
+    # Set API token
+    if(!exists("api_token", where = args, inherits = FALSE) || is.null(args$api_token)) {
+        api_token <- rstudioapi::askForPassword(prompt = "Please enter your API key")
+    } else {
+        api_token <- args$api_token
+    }
+
+    # Extract data via curl
+    export <- RCurl::postForm(
+        uri=url,
+        token=api_token,
+        content='record',
+        format='csv',
+        type='flat',
+        csvDelimiter='',
+        'records[0]'=participant_id,
+        'events[2]'=enrolment_arm,
+        rawOrLabel='raw',
+        rawOrLabelHeaders='raw',
+        exportCheckboxLabel='false',
+        exportSurveyFields='false',
+        exportDataAccessGroups='false',
+        returnFormat='csv',
+        .opts = list(ssl.verifypeer = TRUE)
+    )
+
+    # Convert to tibble
+    df <- readr::read_csv(export, show_col_types = FALSE)
+
+    # Check if participant already exists in given arm
+    if(nrow(df) > 0) { # Already contains data
+        return(FALSE)
+    } else { # No data
+        return(TRUE)
+    }
+}
