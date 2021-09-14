@@ -3,14 +3,8 @@
 #' would be to manually create a ggplot with the "geom_scatter_column()" function
 #' and "theme_chewr()".
 #'
-#' @param data tibble | Redcap, labka, or a combination of both.
-#' @param filter string | What parameter do you want to filter on. I.e. baseline.
-#' @param y_aes string | What y value to look at
-#' @param order vector | The x-axis order
-#' @param title string | Main title
-#' @param subtitle string | Sub title
-#' @param xlab string | Label on x-axis
-#' @param ylab string | Label on y-axis
+#' @param ...
+#' @param comparison
 #'
 #' @return plot
 #' @export
@@ -24,23 +18,87 @@
 #'             plot_subtitle = "Amount of fat in liver",
 #'             plot_xlab = "Groups",
 #'             plot_ylab = "% of liver fat")
-plot_compare_groups <- function(data, filter, y_aes, order=NULL, plot_title=NULL, plot_subtitle=NULL, plot_xlab=NULL, plot_ylab=NULL) {
+auto_compare_baseline <- function(comparison, ...) {
 
-    # TODO: Make X axis name capital first.
+    # Extract ... parameters
+    args <- list(...)
+    if(exists("title", where = args, inherits = FALSE)) {
+        title <- args$title
+    } else {
+        title <- "Liver fat"
+    }
+    if(exists("subtitle", where = args, inherits = FALSE)) {
+        subtitle <- args$subtitle
+    } else {
+        subtitle <- "Liver fat measured by PDFF"
+    }
+    if(exists("ylab", where = args, inherits = FALSE)) {
+        ylab <- args$ylab
+    } else {
+        ylab <- "Define y-label"
+    }
 
-    # Make plot
-    data %>% dplyr::filter(visit == filter) %>%
+    # Read data
+    data <- read_redcap(columns = comparison)
+
+    # Plot
+    data %>% dplyr::filter(visit == "baseline") %>%
         dplyr::group_by(group) %>%
-        ggplot2::ggplot(ggplot2::aes(x = factor(group, levels=order),
-                                     y = eval(parse(text=y_aes)))) +
+        ggplot2::ggplot(ggplot2::aes(x = factor(group, levels=c("control", "obese", "intervention")),
+                                     y = eval(parse(text=comparison)))) +
         geom_scatter_column() +
-        ggplot2::labs(title = plot_title,
-                      subtitle = plot_subtitle,
-                      y = plot_ylab,
-                      x = plot_xlab) +
+        ggplot2::labs(title = title,
+                      subtitle = subtitle,
+                      y = ylab,
+                      x = "") +
         theme_chewr()
-
 }
+
+#' Title
+#'
+#' @param comparison
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+auto_compare_weight_loss <- function(comparison, ...) {
+    # Extract ... parameters
+    args <- list(...)
+    if(exists("title", where = args, inherits = FALSE)) {
+        title <- args$title
+    } else {
+        title <- "Liver fat"
+    }
+    if(exists("subtitle", where = args, inherits = FALSE)) {
+        subtitle <- args$subtitle
+    } else {
+        subtitle <- "Reduction of liver fat"
+    }
+    if(exists("ylab", where = args, inherits = FALSE)) {
+        ylab <- args$ylab
+    } else {
+        ylab <- "Define y-label"
+    }
+
+    # Read data
+    data <- read_redcap(columns = comparison, filter = "NAFLD")
+
+    # Plot
+    data %>% dplyr::filter(group == "intervention") %>%
+        dplyr::group_by(visit) %>%
+        ggplot2::ggplot(ggplot2::aes(x = factor(visit, levels=c("baseline", "month_1", "month_5")),
+                                     y = eval(parse(text=comparison)))) +
+        geom_paired(paired_variable = "participant_id") +
+        ggplot2::labs(title = title,
+                      subtitle = subtitle,
+                      y = ylab,
+                      x = "") +
+        theme_chewr()
+}
+
+
 
 #' Extract participant information and writes it to an easy to view table.
 #'
@@ -49,14 +107,14 @@ plot_compare_groups <- function(data, filter, y_aes, order=NULL, plot_title=NULL
 #'
 #' @examples
 #' extract_participant_end_parameters(3030)
-extract_participant_end_parameters <- function(partcipant_id) {
+auto_end_table <- function(partcipant_id) {
 
     # Read data
     df <- read_redcap(columns = c("bmi", "weight", "whr",
                                   "waist", "hip", "systolic_bp_avg",
                                   "diastolic_bp_avg", "pdff_fat_prelim",
                                   "pdff_liver_cirle_mean", "pdff_pancreas_cirkle_mean",
-                                  "dexa_total_fat"))
+                                  "total_body_fat"))
 
     # Table
     table <- df %>%
@@ -85,11 +143,15 @@ extract_participant_end_parameters <- function(partcipant_id) {
             columns = whr,
             decimals = 2) %>%
         gt::fmt_number(
+            columns = weight,
+            decimals = 1,
+            pattern = "{x}kg") %>%
+        gt::fmt_number(
             columns = c(waist, hip),
             decimals = 0,
             pattern = "{x}cm") %>%
         gt::fmt_number(
-            columns = c(pdff_fat_prelim, pdff_liver_cirle_mean, pdff_pancreas_cirkle_mean),
+            columns = c(pdff_fat_prelim, pdff_liver_cirle_mean, pdff_pancreas_cirkle_mean, total_body_fat),
             decimals = 1,
             pattern = "{x}%") %>%
         gt::fmt_number(
@@ -104,7 +166,8 @@ extract_participant_end_parameters <- function(partcipant_id) {
             systolic_bp_avg = "Blood pressure",
             pdff_fat_prelim = "Prelim.",
             pdff_liver_cirle_mean = "Circular ROI",
-            pdff_pancreas_cirkle_mean = "Circular ROI")
+            pdff_pancreas_cirkle_mean = "Circular ROI",
+            total_body_fat = "Total fat (DEXA)")
 
     # Return
     table

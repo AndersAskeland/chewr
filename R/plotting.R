@@ -31,11 +31,10 @@ geom_scatter_column <- function() {
     return(return_vector)
 }
 
-geom_paired <- function() {
+geom_paired <- function(paired_variable) {
 
-    # Set jitter
-    jitter <- ggplot2::geom_jitter(width = 0.15, colour = "#2b8cbe")
-
+    # Set points
+    points <- ggplot2::geom_point(colour = "#2b8cbe")
     # Set mean bar
     mean_bar <- ggplot2::stat_summary(mapping = ggplot2::aes(width = 0.1),
                                       fun = "mean",
@@ -50,10 +49,10 @@ geom_paired <- function() {
                                         fun.args = list(mult = 1),
                                         position = "dodge")
     # Set lines
-    paired_lines <- ggplot2::geom_line(aes(group = visit))
+    paired_lines <- ggplot2::geom_line(ggplot2::aes(group = eval(parse(text=paired_variable))))
 
     # Return
-    return_vector <- c(jitter, mean_bar, error_bars, paired_lines)
+    return_vector <- c(points, mean_bar, error_bars, paired_lines)
     return(return_vector)
 }
 
