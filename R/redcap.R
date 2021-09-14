@@ -284,6 +284,9 @@ redcap_allocate_automatic <- function(participant_id, url="https://redcap.rn.dk/
     } else if(df$group == 2) {
         message_text <- paste(">>> ", df$participant_id, "transfered to excluded!")
         df$redcap_event_name <- "enrolment_arm_5"
+    } else {
+        warning("Participant has not been allocated to a group. Stopping function!")
+        return(0)
     }
 
     # Check if already present

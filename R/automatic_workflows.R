@@ -39,7 +39,7 @@ auto_compare_baseline <- function(comparison, ...) {
     }
 
     # Read data
-    data <- read_redcap(columns = comparison)
+    data <- read_redcap(columns = comparison, filter = "NAFLD")
 
     # Plot
     data %>% dplyr::filter(visit == "baseline") %>%
@@ -96,6 +96,7 @@ auto_compare_weight_loss <- function(comparison, ...) {
                       y = ylab,
                       x = "") +
         theme_chewr()
+
 }
 
 

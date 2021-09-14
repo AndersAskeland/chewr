@@ -100,7 +100,8 @@ theme_chewr <- function(font="Helvetica") {
         axis.line.y = ggplot2::element_line(color="#222222"),
         axis.line.x = ggplot2::element_line(color="#222222"),
         # Background
-        panel.background = ggplot2::element_blank(),
+        panel.background = ggplot2::element_rect(fill = "transparent", colour = NA),
+        plot.background = ggplot2::element_rect(fill = "transparent", colour = NA),
         # New grid
         panel.grid.minor = ggplot2::element_blank(),
         panel.grid.major.y = ggplot2::element_line(color="#cbcbcb"),
