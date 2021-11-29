@@ -101,3 +101,73 @@ check_record <- function(participant_id, enrolment_arm, url="https://redcap.rn.d
         return(TRUE)
     }
 }
+
+#' Extracts label names from list.
+#'
+#' @param args
+#' @param ylab
+#'
+#' @return
+#'
+#' @examples
+extract_labs <- function(args, ylab) {
+    # Title
+    if(!exists("title", where = args, inherits = FALSE)) {
+        args$title <- ggplot2::waiver()
+    }
+
+    # Subtitle
+    if(!exists("subtitle", where = args, inherits = FALSE)) {
+        args$subtitle <- ggplot2::waiver()
+    }
+
+    # Y lab
+    if(!exists("ylab", where = args, inherits = FALSE)) {
+        args$ylab <- ylab
+    }
+
+    return(args)
+}
+
+
+extract_theme <- function(args) {
+    # Scale
+    if(!exists("scale", where = args, inherits = FALSE)) {
+        args$scale <- 1
+    } else if(args$scale == "poster") {
+        args$scale <- 2
+    }
+
+    # Color
+    if(!exists("color", where = args, inherits = FALSE)) {
+        args$color <- "#2b8cbe"
+    }
+
+    return(args)
+}
+
+
+
+#' Renames groups
+#'
+#' @param df
+#'
+#' @return df
+#'
+#' @examples
+rename_xlabs <- function(df) {
+    # Rename groups
+    df <- df %>%
+        dplyr::mutate(
+            group = dplyr::case_when(
+                group == "control" ~ "Lean control",
+                group == "obese" ~ "Obese without NAFLD",
+                group == "intervention" ~ "Obese with NAFLD")) %>%
+        dplyr::mutate(visit = dplyr::case_when(
+                visit == "baseline" ~ "Baseline",
+                visit == "month_1" ~ "During weight loss",
+                visit == "month_5" ~ "After weight loss"
+            ))
+
+    return(df)
+}

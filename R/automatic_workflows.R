@@ -20,41 +20,33 @@
 #'             plot_ylab = "% of liver fat")
 auto_compare_baseline <- function(comparison, ...) {
 
-    # Extract ... parameters
+    # Extract labels from ... argument
     args <- list(...)
-    if(exists("title", where = args, inherits = FALSE)) {
-        title <- args$title
-    } else {
-        title <- "Liver fat"
-    }
-    if(exists("subtitle", where = args, inherits = FALSE)) {
-        subtitle <- args$subtitle
-    } else {
-        subtitle <- "Liver fat measured by PDFF"
-    }
-    if(exists("ylab", where = args, inherits = FALSE)) {
-        ylab <- args$ylab
-    } else {
-        ylab <- "Define y-label"
-    }
+    labels <- extract_labs(args, ylab = comparison)
 
-    # Read data
-    data <- read_redcap(columns = comparison, filter = "NAFLD")
+    # Extract theme
+    theme <- extract_theme(args)
 
-    # Plot
-    data %>% dplyr::filter(visit == "baseline") %>%
+    # Read data and rename groups
+    df <- read_redcap(columns = comparison, filter = "NAFLD")
+    df <- rename_xlabs(df)
+
+    # Plot data
+    df %>% dplyr::filter(visit == "Baseline") %>%
         dplyr::group_by(group) %>%
-        ggplot2::ggplot(ggplot2::aes(x = factor(group, levels=c("control", "obese", "intervention")),
+        ggplot2::ggplot(ggplot2::aes(x = factor(group, levels=c("Lean control",
+                                                                "Obese without NAFLD",
+                                                                "Obese with NAFLD")),
                                      y = eval(parse(text=comparison)))) +
-        geom_scatter_column() +
-        ggplot2::labs(title = title,
-                      subtitle = subtitle,
-                      y = ylab,
-                      x = "") +
-        theme_chewr()
+        geom_scatter_column(scale = theme$scale, color = theme$color) +
+        ggplot2::labs(title = labels$title,
+                      subtitle = labels$subtitle,
+                      y = labels$ylab,
+                      x = NULL) +
+        theme_chewr(scale = theme$scale)
 }
 
-#' Title
+#' Automatically compare weight loss
 #'
 #' @param comparison
 #' @param ...
@@ -64,39 +56,29 @@ auto_compare_baseline <- function(comparison, ...) {
 #'
 #' @examples
 auto_compare_weight_loss <- function(comparison, ...) {
-    # Extract ... parameters
-    args <- list(...)
-    if(exists("title", where = args, inherits = FALSE)) {
-        title <- args$title
-    } else {
-        title <- "Liver fat"
-    }
-    if(exists("subtitle", where = args, inherits = FALSE)) {
-        subtitle <- args$subtitle
-    } else {
-        subtitle <- "Reduction of liver fat"
-    }
-    if(exists("ylab", where = args, inherits = FALSE)) {
-        ylab <- args$ylab
-    } else {
-        ylab <- "Define y-label"
-    }
 
-    # Read data
-    data <- read_redcap(columns = comparison, filter = "NAFLD")
+    # Extract labels from ... argument
+    args <- list(...)
+    labels <- extract_labs(args, ylab = comparison)
+
+    # Extract theme
+    theme <- extract_theme(args)
+
+    # Read data and rename groups
+    df <- read_redcap(columns = comparison, filter = "NAFLD")
+    df <- rename_xlabs(df)
 
     # Plot
-    data %>% dplyr::filter(group == "intervention") %>%
+    df %>% dplyr::filter(group == "Obese with NAFLD") %>%
         dplyr::group_by(visit) %>%
-        ggplot2::ggplot(ggplot2::aes(x = factor(visit, levels=c("baseline", "month_1", "month_5")),
+        ggplot2::ggplot(ggplot2::aes(x = factor(visit, levels=c("Baseline", "During weight loss", "After weight loss")),
                                      y = eval(parse(text=comparison)))) +
-        geom_paired(paired_variable = "participant_id") +
-        ggplot2::labs(title = title,
-                      subtitle = subtitle,
-                      y = ylab,
-                      x = "") +
-        theme_chewr()
-
+        geom_paired(paired_variable = "participant_id", color = theme$color, scale = theme$scale) +
+        ggplot2::labs(title = labels$title,
+                      subtitle = labels$subtitle,
+                      y = labels$ylab,
+                      x = NULL) +
+        theme_chewr(scale = theme$scale)
 }
 
 

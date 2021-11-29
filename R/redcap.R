@@ -138,6 +138,7 @@ read_redcap <- function(columns=NULL, column_types=NULL, url="https://redcap.rn.
     return(dat)
 }
 
+
 #' Extract available data variables from a redcap project.
 #' R studio API collects API key.
 #'
@@ -179,6 +180,7 @@ redcap_codebook <- function(url="https://redcap.rn.dk/api/", ...) {
     return(dat)
 }
 
+
 #' Takes a redcap export file as input and changes redcap arm on participant
 #'
 #' @param export_dir str | Export file path
@@ -217,6 +219,7 @@ redcap_allocate <- function(file_location, export_dir = "/Users/andersaskeland/D
     message(message_text)
 }
 
+
 #' Automatically transfer participant from allocation group to supplied group
 #'
 #' @param participant_id
@@ -231,7 +234,7 @@ redcap_allocate_automatic <- function(participant_id, url="https://redcap.rn.dk/
 
     # Error out if ID not supported
     if(participant_id < 4000 || participant_id > 4999) {
-        warning("Participant ID is not supported (Supported ID's: 3000 > 4000)")
+        warning("Participant ID is not supported (Supported ID's: 4000 > 4999). Remember to use allocation ID.")
         return(0)
     }
 
