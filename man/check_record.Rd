@@ -18,7 +18,7 @@ check_record(
 
 \item{url}{str}
 
-\item{...}{NA}
+\item{...}{}
 }
 \value{
 bool

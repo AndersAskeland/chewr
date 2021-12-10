@@ -15,7 +15,7 @@
 #' @examples
 #' read_redcap(columns = c("bmi", "weight"),
 #'             url = "https://redcap.rn.dk/api/")
-read_redcap <- function(columns=NULL, column_types=NULL, url="https://redcap.rn.dk/api/", identifier = FALSE, filter = FALSE, ...) {
+redcap_read <- function(columns=NULL, column_types=NULL, url="https://redcap.rn.dk/api/", identifier = FALSE, filter = FALSE, ...) {
 
     # Extract ... args
     args <- list(...)

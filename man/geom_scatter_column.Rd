@@ -2,17 +2,17 @@
 % Please edit documentation in R/plotting.R
 \name{geom_scatter_column}
 \alias{geom_scatter_column}
-\title{Custom geom. Creates a scatter column plot. Can only be used as a geom
-for a ggplot object.}
+\title{Custom ggplot2 geom that creates a scatter column plot. Good to use when
+comparing groups.}
 \usage{
-geom_scatter_column()
+geom_scatter_column(scale = 1, color = "#2b8cbe")
 }
 \value{
 ggplot geom
 }
 \description{
-Custom geom. Creates a scatter column plot. Can only be used as a geom
-for a ggplot object.
+Custom ggplot2 geom that creates a scatter column plot. Good to use when
+comparing groups.
 }
 \examples{
 ggplot(data) +

@@ -1,3 +1,61 @@
+
+# 1. Exported -------------------------------------------------------------
+
+
+#' Combine data from labka export with redcap data.
+#'
+#' @param labka_data Tibble | Tibble of lakba data
+#' @param redcap_data Tibble | Tibble of redcap data
+#' @param identifier bool | Whether or not to include CPR number in the return. You must have CPR number in your data when combining data with labka data.
+#'
+#' @note You need to have CPR number included in both the labka and redcap data to use this function (left join is based on CPR number and date).
+#' @return tibble
+#' @export
+#'
+#' @examples
+#' combine_redcap_labka(labka_data = labka_data,
+#'                      redcap_data = redcap_data,
+#'                      identifier = TRUE)
+combine_redcap_labka <- function(labka_data, redcap_data, identifier = FALSE) {
+
+    # Check if data includes cpr_number
+    if(!"cpr_number" %in% colnames(labka_data)) {
+        print("There is no column for CPR number in labka data.")
+        stop()
+    } else if(!"cpr_number" %in% colnames(redcap_data)) {
+        print("There is no column for CPR number in redap data.")
+        stop()
+    }
+
+    # Combine redcap with labka_data
+    combined <- dplyr::left_join(redcap_data, labka_data, by = c("cpr_number" = "cpr_number", "start_date" = "date"))
+
+    # Check if return identifer (CPR number)
+    if(identifier == FALSE) {
+        dat <- combined %>%
+            dplyr::select(-cpr_number)
+    }
+
+    # Return
+    return(combined)
+}
+
+#' Simple save svg.
+#'
+#' @param path str | File path
+#' @param plot plot | Plot object to be saved
+#'
+#' @return
+#' @export
+#'
+#' @examples
+save_svg_wide <- function(path, plot) {
+    ggplot2::ggsave(filename = path, device = "svg", plot = plot, width = 26, height = 8.5, dpi = 300)
+}
+
+
+# 2. Not exported ---------------------------------------------------------
+
 #' Returns NULL if provided value is NA
 #'
 #' @param value str
@@ -17,6 +75,12 @@ null_if_na <- function(value) {
     }
 }
 
+
+
+
+
+# 2. Not exported ---------------------------------------------------------
+
 #' Filters data on the basis of participants in the control and obese group should not have NAFLD.
 #'
 #' @param dat tibble | Data. I
@@ -35,7 +99,7 @@ filter_nafld <- function(dat, token, arg = NULL) {
     # Check if liver fat is included in data. If not retrieve it
     if(is.null(arg)) {
         arg <- "pdff_liver_cirle_mean"
-        dat_copy <- read_redcap(columns = arg, api_token = token)
+        dat_copy <- redcap_read(columns = arg, api_token = token)
     }
 
     # Find IDs to remove
@@ -161,7 +225,7 @@ rename_xlabs <- function(df) {
         dplyr::mutate(
             group = dplyr::case_when(
                 group == "control" ~ "Lean control",
-                group == "obese" ~ "Obese without NAFLD",
+                group == "obese" ~ "Obese w/o NAFLD",
                 group == "intervention" ~ "Obese with NAFLD")) %>%
         dplyr::mutate(visit = dplyr::case_when(
                 visit == "baseline" ~ "Baseline",
@@ -171,3 +235,6 @@ rename_xlabs <- function(df) {
 
     return(df)
 }
+
+
+

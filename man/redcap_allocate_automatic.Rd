@@ -11,7 +11,7 @@ redcap_allocate_automatic(
 )
 }
 \arguments{
-\item{...}{NA}
+\item{...}{}
 }
 \value{
 

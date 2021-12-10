@@ -8,7 +8,7 @@
 #'
 #' @examples
 #' read_msd_table("data.csv")
-read_msd_table <- function(path) {
+msd_read_table <- function(path) {
 
     # Open file
     df <- readr::read_csv(file = path, skip = 1, col_types = "cccnnnnnnnnnnnnn", show_col_types = FALSE)
@@ -25,6 +25,6 @@ read_msd_table <- function(path) {
 #' @export
 #'
 #' @examples
-read_msd_raw <- function(path) {
+msd_read_raw <- function(path) {
     pass
 }

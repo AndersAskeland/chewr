@@ -2,23 +2,23 @@
 % Please edit documentation in R/plotting.R
 \name{theme_chewr}
 \alias{theme_chewr}
-\title{Changes plot theme to chewr (multisite) style. Used in combination
-with ggplot.}
+\title{Custom theme for ggplot object.}
 \usage{
-theme_chewr(font = "Helvetica")
+theme_chewr(font = "Helvetica", scale = 1)
 }
 \arguments{
-\item{font}{string | Font type}
+\item{font}{str | Font type}
+
+\item{scale}{int | How large text should be}
 }
 \value{
 ggplot theme
 }
 \description{
-Changes plot theme to chewr (multisite) style. Used in combination
-with ggplot.
+Custom theme for ggplot object.
 }
 \examples{
 ggplot(data) +
    geom_scatter_column() +
-   theme_chewr()
+   theme_chewr(scale = 2)
 }
