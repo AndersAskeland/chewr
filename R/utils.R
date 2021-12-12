@@ -54,6 +54,10 @@ save_svg_wide <- function(path, plot) {
 }
 
 
+
+
+
+
 # 2. Not exported ---------------------------------------------------------
 
 #' Returns NULL if provided value is NA
@@ -75,11 +79,81 @@ null_if_na <- function(value) {
     }
 }
 
+#' Queries WHO API database
+#'
+#' @param query
+#'
+#' @return
+#'
+#' @examples
+who_query <- function(query) {
+    # Check query
+    if(query == "obesity") {
+        query_data <- "https://ghoapi.azureedge.net/api/NCD_BMI_30A"
+        query_dim <- "https://ghoapi.azureedge.net/api/DIMENSION/COUNTRY/DimensionValues"
+    }
 
+    # Read data from WHO API
+    request <- httr::GET(query_data)
+    json_raw <- httr::content(x = request, as = "text")
+    json_parsed <- jsonlite::fromJSON(json_raw)
+    df <- dplyr::as_tibble(json_parsed[[2]])
 
+    # Import country dim data (WHO data)
+    request <- httr::GET(query_dim)
+    json_raw <- httr::content(x = request, as = "text")
+    json_parsed <- jsonlite::fromJSON(json_raw)
+    df_country_dims <- dplyr::as_tibble(json_parsed[[2]]) %>%
+        dplyr::select(Code, Title) %>%
+        dplyr::rename(country_code = Code, country = Title)
 
+    # Clean and combine data
+    df_clean <- df %>%
+        dplyr::rename(id = Id,
+                      year = TimeDim,
+                      sex = Dim1,
+                      country_code = SpatialDim,
+                      bmi_mean = NumericValue,
+                      bmi_low = Low,
+                      bmi_high = High) %>%
+        dplyr::select(id, year, sex, country_code, bmi_mean, bmi_low, bmi_high) %>%
+        dplyr::mutate(sex = dplyr::case_when(
+            sex == "FMLE" ~ "Female",
+            sex == "MLE" ~ "Male",
+            sex == "BTSX" ~ "Both sexes")) %>%
+        dplyr::left_join(y = df_country_dims) %>%
+        dplyr::mutate(country = dplyr::case_when(
+            country == "United States of America" ~ "USA",
+            country == "Russian Federation" ~ "Russia",
+            country == "United Kingdom of Great Britain and Northern Ireland" ~ "UK",
+            country == "United Republic of Tanzania" ~ "Tanzania",
+            country == "Venezuela (Bolivarian Republic of)" ~ "Venezuela",
+            country == "Viet Nam" ~ "Vietnam",
+            country == "Yemen Arab Republic (until 1990)" ~ "Yemen",
+            country == "Syrian Arab Republic" ~ "Syria",
+            country == "Sudan (until 2011)" ~ "Sudan",
+            country == "Republic of Korea" ~ "North Korea",
+            country == "Lao People's Democratic Republic" ~ "Laos",
+            country == "Kiribati (until 1984)" ~ "Kiribati",
+            country == "Democratic Republic of the Congo" ~ "Congo",
+            country == "Democratic People's Republic of Korea" ~ "South Korea",
+            country == "Bolivia (Plurinational State of)" ~ "Bolivia",
+            country == "Iran (Islamic Republic of)" ~ "Iran",
+            country == "Sudan (former)" ~ "Sudan",
+            country == "Germany, Federal Republic (former)" ~ "Germany",
+            country == "Congo" ~ "Democratic Republic of the Congo",
+            country == "Côte d'Ivoire" ~ "Ivory Coast",
+            country == "Czechia" ~ "Czech Republic",
+            TRUE ~ country)) %>%
+        dplyr::filter(sex == "Both sexes") %>%
+        dplyr::group_by(country) %>%
+        dplyr::filter(!is.na(bmi_mean) | !is.na(country) | !is.na(year)) %>%
+        dplyr::arrange(dplyr::desc(year), .by_group = TRUE) %>%
+        dplyr::ungroup()
 
-# 2. Not exported ---------------------------------------------------------
+    # Return
+    df_clean
+}
 
 #' Filters data on the basis of participants in the control and obese group should not have NAFLD.
 #'

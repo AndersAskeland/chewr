@@ -256,136 +256,204 @@ plot_multisite_weight_loss <- function(comparison, df, exclude = TRUE, ...) {
 #' Creates animation object. Can be saved by using ```gganimate::anim_save() ```.
 #'
 #' @param map str | World or DK
+#' @param time int | Time in second the gif should run for
 #'
-#' @return
+#' @return gif item
 #' @export
 #'
 #' @examples
-anim_plot_world_obesity <- function(map = "world", width = 1600, height = 800) {
+#' gif <- anim_map_obesity(map = "world")
+#'
+#' # Save gif
+#' gganimate::anim_save(filename = "world.gif", animation = gif, path = "~/folder/")
+anim_map_obesity <- function(map = "world", time = 20) {
 
-    # Read data from WHO API
-    request <- httr::GET("https://ghoapi.azureedge.net/api/NCD_BMI_30A")
-    json_raw <- httr::content(x = request, as = "text")
-    json_parsed <- jsonlite::fromJSON(json_raw)
-    df <- dplyr::as_tibble(json_parsed[[2]])
-
-    # Import country dim data (WHO data)
-    request <- httr::GET("https://ghoapi.azureedge.net/api/DIMENSION/COUNTRY/DimensionValues")
-    json_raw <- httr::content(x = request, as = "text")
-    json_parsed <- jsonlite::fromJSON(json_raw)
-    df_country_dims <- dplyr::as_tibble(json_parsed[[2]]) %>%
-        dplyr::select(Code, Title) %>%
-        dplyr::rename(country_code = Code, country = Title)
-
-    # Clean and combine data
-    df_clean <- df %>%
-        dplyr::rename(id = Id,
-                      year = TimeDim,
-                      sex = Dim1,
-                      country_code = SpatialDim,
-                      bmi_mean = NumericValue,
-                      bmi_low = Low,
-                      bmi_high = High) %>%
-        dplyr::select(id, year, sex, country_code, bmi_mean, bmi_low, bmi_high) %>%
-        dplyr::mutate(sex = dplyr::case_when(
-            sex == "FMLE" ~ "Female",
-            sex == "MLE" ~ "Male",
-            sex == "BTSX" ~ "Both sexes")) %>%
-        dplyr::left_join(y = df_country_dims) %>%
-        dplyr::mutate(country = dplyr::case_when(
-            country == "United States of America" ~ "USA",
-            country == "Russian Federation" ~ "Russia",
-            country == "United Kingdom of Great Britain and Northern Ireland" ~ "UK",
-            country == "United Republic of Tanzania" ~ "Tanzania",
-            country == "Venezuela (Bolivarian Republic of)" ~ "Venezuela",
-            country == "Viet Nam" ~ "Vietnam",
-            country == "Yemen Arab Republic (until 1990)" ~ "Yemen",
-            country == "Syrian Arab Republic" ~ "Syria",
-            country == "Sudan (until 2011)" ~ "Sudan",
-            country == "Republic of Korea" ~ "North Korea",
-            country == "Lao People's Democratic Republic" ~ "Laos",
-            country == "Kiribati (until 1984)" ~ "Kiribati",
-            country == "Democratic Republic of the Congo" ~ "Congo",
-            country == "Democratic People's Republic of Korea" ~ "South Korea",
-            country == "Bolivia (Plurinational State of)" ~ "Bolivia",
-            country == "Iran (Islamic Republic of)" ~ "Iran",
-            country == "Sudan (former)" ~ "Sudan",
-            country == "Germany, Federal Republic (former)" ~ "Germany",
-            country == "Congo" ~ "Democratic Republic of the Congo",
-            country == "Côte d'Ivoire" ~ "Ivory Coast",
-            country == "Czechia" ~ "Czech Republic",
-            TRUE ~ country)) %>%
-        dplyr::filter(sex == "Both sexes") %>%
-        dplyr::group_by(country) %>%
-        dplyr::filter(!is.na(bmi_mean) | !is.na(country) | !is.na(year)) %>%
-        dplyr::arrange(dplyr::desc(year), .by_group = TRUE) %>%
-        dplyr::ungroup()
+    # Query WHO API
+    df <- who_query(query = "obesity")
 
     # Create map
-    if(map == "world") {
-        map <- ggplot2::map_data(map)
-    } else {
-        map <- ggplot2::map_data("world",
-                                region = "Denmark")
-    }
+    if(map == "world") { # World map
+        map_item <- ggplot2::map_data(map)
 
-    plot <- ggplot2::ggplot(df_clean) +
-        # Map data
-        ggplot2::geom_map(mapping = ggplot2::aes(map_id = region),
-                 data = map,
-                 map = map,
-                 color="white",
-                 size=0.1,
-                 fill="grey") +
-        # Obesity data
-        ggplot2::geom_map(mapping = ggplot2::aes(fill = bmi_mean,
-                               map_id = country),
-                 map = map) +
-        # Set display area
-        ggplot2::expand_limits(x = map$long,
-                      y = map$lat) +
-        # Set labels
-        ggplot2::labs(subtitle = "Year: {frame_along}",
-             fill = "Percentage (%)") +
-        # Theming
-        ggplot2::theme(plot.background = ggplot2::element_rect(fill = "transparent", color = NA),
-                       panel.background = ggplot2::element_rect(fill = "transparent", color = NA),
-                       legend.background = ggplot2::element_rect(fill = "transparent", color = NA),
-                       axis.ticks = ggplot2::element_blank(),
-                       axis.text = ggplot2::element_blank(),
-                       axis.title = ggplot2::element_blank(),
-                       panel.grid = ggplot2::element_blank(),
-                       text = ggplot2::element_text(color = "#22211d"),
-                       plot.subtitle = ggplot2::element_text(size=20, color = "#4e4d47", hjust = 0.5),
-                       aspect.ratio = 1/2,
-                       plot.margin = ggplot2::margin(0, -0.02, -0.04, -0.02, unit = "npc"),
-                       panel.border = ggplot2::element_blank(),
-                       legend.position = c(0.08, 0.3)) +
-        # Gradient
-        ggplot2::scale_fill_gradient2(low = "#ffffcc",
-                                      mid = "#ffeda0",
-                                      high = "#800026",
-                                      na.value = "grey",
-                                      limits=c(0, 55),
-                                      breaks = c(0, 10, 20, 30, 40, 50))
+        plot <- ggplot2::ggplot(df) +
+            # Map data
+            ggplot2::geom_map(mapping = ggplot2::aes(map_id = region),
+                              data = map_item,
+                              map = map_item,
+                              color="white",
+                              size=0.1,
+                              fill="grey") +
+            # Obesity data
+            ggplot2::geom_map(mapping = ggplot2::aes(fill = bmi_mean,
+                                                     map_id = country),
+                              map = map_item) +
+            # Set display area
+            ggplot2::expand_limits(x = map_item$long,
+                                   y = map_item$lat) +
+            # Set labels
+            ggplot2::labs(subtitle = "Year: {frame_along}",
+                          fill = "Percentage (%)") +
+            # Theming
+            ggplot2::theme(plot.background = ggplot2::element_rect(fill = "transparent", color = NA),
+                           panel.background = ggplot2::element_rect(fill = "transparent", color = NA),
+                           legend.background = ggplot2::element_rect(fill = "transparent", color = NA),
+                           axis.ticks = ggplot2::element_blank(),
+                           axis.text = ggplot2::element_blank(),
+                           axis.title = ggplot2::element_blank(),
+                           panel.grid = ggplot2::element_blank(),
+                           text = ggplot2::element_text(color = "#22211d"),
+                           plot.subtitle = ggplot2::element_text(size=15, color = "#4e4d47", hjust = 0.5),
+                           aspect.ratio = 1/2,
+                           plot.margin = ggplot2::margin(0, -0.02, -0.04, -0.02, unit = "npc"),
+                           panel.border = ggplot2::element_blank(),
+                           legend.position = c(0.10, 0.4),
+                           legend.title = ggplot2::element_blank()) +
+            # Gradient
+            ggplot2::scale_fill_gradient2(low = "#ffffcc",
+                                          mid = "#ffeda0",
+                                          high = "#800026",
+                                          na.value = "grey",
+                                          labels=scales::label_percent(scale = 1),
+                                          limits=c(-5, 55),
+                                          breaks = c(0, 10, 20, 30, 40, 50))
+    } else { # Denmark map
+        map_item <- ggplot2::map_data("world",
+                                region = "Denmark")
+
+        plot <- ggplot2::ggplot(df) +
+            # Map data
+            ggplot2::geom_map(mapping = ggplot2::aes(map_id = region),
+                              data = map_item,
+                              map = map_item,
+                              color="white",
+                              size=0.1,
+                              fill="grey") +
+            # Obesity data
+            ggplot2::geom_map(mapping = ggplot2::aes(fill = bmi_mean,
+                                                     map_id = country),
+                              map = map_item) +
+            # Set display area
+            ggplot2::expand_limits(x = map_item$long,
+                                   y = map_item$lat) +
+            # Set labels
+            ggplot2::labs(subtitle = "Year: {frame_along}",
+                          fill = "Percentage (%)") +
+            # Theming
+            ggplot2::theme(plot.background = ggplot2::element_rect(fill = "transparent", color = NA),
+                           panel.background = ggplot2::element_rect(fill = "transparent", color = NA),
+                           legend.background = ggplot2::element_rect(fill = "transparent", color = NA),
+                           axis.ticks = ggplot2::element_blank(),
+                           axis.text = ggplot2::element_blank(),
+                           axis.title = ggplot2::element_blank(),
+                           panel.grid = ggplot2::element_blank(),
+                           text = ggplot2::element_text(color = "#22211d"),
+                           plot.subtitle = ggplot2::element_text(hjust = 0.02),
+                           aspect.ratio = 1/1,
+                           plot.margin = ggplot2::margin(0, -0.02, -0.04, -0.02, unit = "npc"),
+                           panel.border = ggplot2::element_blank(),
+                           legend.position = c(0.80, 0.2),
+                           legend.title = ggplot2::element_blank()) +
+            # Gradient
+            ggplot2::scale_fill_gradient2(low = "#ffffcc",
+                                          mid = "#ffeda0",
+                                          high = "#800026",
+                                          na.value = "grey",
+                                          labels=scales::label_percent(scale = 1),
+                                          limits=c(-5, 55),
+                                          breaks = c(0, 10, 20, 30, 40, 50))
+    }
 
 
     # Animation
     animation <- plot +
         gganimate::transition_reveal(as.integer(year))
 
-    # Create gif
+    # Gif settings
+    frames <- length(unique(df$year))
+    fps <- (length(unique(df$year)) / time)
+    width <- dplyr::if_else(map == "world", 1600, 1000)
+    height <- dplyr::if_else(map == "world", 900, 1000)
+
+    # Animate gif
     gif <- gganimate::animate(animation,
                               bg = 'transparent',
-                              width = 1800,
-                              duration = 20,
+                              nframes = frames,
+                              fps = round(fps),
+                              width = width,
+                              height = height,
+                              res = 200,
                               device = "png",
                               renderer = gganimate::magick_renderer(loop = FALSE))
 
-    # Save gif
-    gganimate::anim_save(filename = "world.gif",
-                         animation = gif,
-                         path = "~/Downloads/")
-     }
+    # Return
+    gif
+    }
 
+
+#' Create plot
+#'
+#' @param country
+#' @param time
+#' @param width
+#' @param height
+#'
+#' @return
+#' @export
+#'
+#' @examples
+anim_plot_obesity <- function(country = "world", time = 20, width = 1600, height = 1000) {
+
+    # Query WHO API
+    df <- who_query(query = "obesity")
+
+        # Filter data
+    if(country == "world") {
+        df <- df %>%
+            dplyr::group_by(year) %>%
+            dplyr::summarise(bmi_mean = mean(bmi_mean, na.rm = T))
+
+    } else if (country == "denmark" | country == "Denmark") {
+        country_name <- Hmisc::capitalize(country)
+        df <- df %>%
+            dplyr::filter(country == country_name)
+    } else {
+        break
+    }
+
+    # Create graph
+    plot <- ggplot2::ggplot(data = df, ggplot2::aes(x = year, y = bmi_mean)) +
+        ggplot2::geom_line(color="red", size = 2) +
+        ggplot2::labs(subtitle = "Year: {frame_along}",
+                      y = "Percentage (%)") +
+        theme_chewr(scale = 1.5) +
+        ggplot2::theme(axis.title.x = ggplot2::element_blank()) +
+        ggplot2::scale_y_continuous(limits=c(0,45),
+                                    breaks = c(5, 10, 20, 30, 40)) +
+        ggplot2::scale_x_continuous(limits=c(1975,2017),
+                                    breaks = c(1975, 1985, 1995, 2005, 2016))
+
+
+
+    # Animation
+    animation <- plot +
+        gganimate::transition_reveal(as.integer(year))
+
+    # Gif settings
+    frames <- length(unique(df$year))
+    fps <- (length(unique(df$year)) / time)
+
+    # Animate gif
+    gif <- gganimate::animate(animation,
+                              bg = 'transparent',
+                              nframes = frames,
+                              fps = round(fps),
+                              width = width,
+                              height = height,
+                              res = 200,
+                              device = "png",
+                              renderer = gganimate::magick_renderer(loop = FALSE))
+
+    # Return
+    gif
+}
 

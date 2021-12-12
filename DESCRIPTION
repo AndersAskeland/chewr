@@ -36,4 +36,5 @@ Imports:
     maps,
     gifski,
     magick,
-    svglite
+    svglite,
+    mapproj
