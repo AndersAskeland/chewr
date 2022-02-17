@@ -8,7 +8,7 @@
 table_information <- function(partcipant_id) {
 
     # Read data
-    df <- read_redcap(columns = c("bmi", "weight", "whr",
+    df <- redcap_read(columns = c("bmi", "weight", "whr",
                                   "waist", "hip", "systolic_bp_avg",
                                   "diastolic_bp_avg", "pdff_fat_prelim",
                                   "pdff_liver_cirle_mean", "pdff_pancreas_cirkle_mean",
