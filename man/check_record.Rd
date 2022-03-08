@@ -26,3 +26,6 @@ bool
 \description{
 Checks if participant ID already exist inside given redcap arm.
 }
+\examples{
+check_record("3030", "enrolment_arm_1")
+}

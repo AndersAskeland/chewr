@@ -3,7 +3,7 @@
 \name{redcap_read}
 \alias{redcap_read}
 \title{Extracts data from redcap (using RCurl) and writes it to a easy to use tibble.
-API token is colleced using R studio api when function is run.}
+API token is collected using R studio api when function is run.}
 \usage{
 redcap_read(
   columns = NULL,
@@ -32,7 +32,7 @@ tibble
 }
 \description{
 Extracts data from redcap (using RCurl) and writes it to a easy to use tibble.
-API token is colleced using R studio api when function is run.
+API token is collected using R studio api when function is run.
 }
 \note{
 If you wish to combine lakba with redcap data you must include CPR number (identifier = TRUE)

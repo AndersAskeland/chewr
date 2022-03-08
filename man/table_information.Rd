@@ -6,6 +6,9 @@
 \usage{
 table_information(partcipant_id)
 }
+\arguments{
+\item{partcipant_id}{}
+}
 \value{
 Data table graphic
 }
@@ -13,5 +16,5 @@ Data table graphic
 Extract participant information and writes it to an easy to view table.
 }
 \examples{
-extract_participant_end_parameters(3030)
+table_information(3030)
 }

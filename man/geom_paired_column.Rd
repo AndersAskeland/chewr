@@ -8,7 +8,11 @@ in paired analyses.}
 geom_paired_column(paired_variable, scale = 1, color = "#2b8cbe")
 }
 \arguments{
-\item{color}{}
+\item{paired_variable}{str | Column to group on}
+
+\item{scale}{int | Size scale of coloumn}
+
+\item{color}{str | Color code}
 }
 \value{
 
@@ -16,4 +20,7 @@ geom_paired_column(paired_variable, scale = 1, color = "#2b8cbe")
 \description{
 Custom ggplot2 geom that creates a Paried scatter column plot. Good to use
 in paired analyses.
+}
+\examples{
+paired_variable = "participant_id", color = theme$color, scale = theme$scale
 }

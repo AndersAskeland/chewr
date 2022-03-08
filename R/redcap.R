@@ -1,5 +1,6 @@
+# 1. Read data from redcap ----------------------------------------------------------------
 #' Extracts data from redcap (using RCurl) and writes it to a easy to use tibble.
-#' API token is colleced using R studio api when function is run.
+#' API token is collected using R studio api when function is run.
 #'
 #' @param columns vector | Can contain up to 20 different variables. Use function "redcap_codebook()" to view avaliable variables.
 #' @param column_types vector | Define column data types. Is in the order as displayed on redcap.
@@ -85,7 +86,7 @@ redcap_read <- function(columns=NULL, column_types=NULL, url="https://redcap.rn.
         .opts = list(ssl.verifypeer = TRUE)
     )
 
-    # Convert to tibblem set CPR number, visit, and group.
+    # Convert to tibble set CPR number, visit, and group.
     dat <- readr::read_csv(file=export, col_types=column_types, show_col_types = FALSE) %>%
         dplyr::group_by(participant_id) %>%
         tidyr::fill(cpr_nummer) %>%
@@ -143,6 +144,7 @@ redcap_read <- function(columns=NULL, column_types=NULL, url="https://redcap.rn.
 #' R studio API collects API key.
 #'
 #' @param url string | Link to API website
+#' @param ... Extra arguments
 #'
 #' @return tibble
 #' @export
@@ -180,7 +182,7 @@ redcap_codebook <- function(url="https://redcap.rn.dk/api/", ...) {
     return(dat)
 }
 
-
+# 2. Allocation functions ----------------------------------------------------------------
 #' Takes a redcap export file as input and changes redcap arm on participant
 #'
 #' @param export_dir str | Export file path
@@ -190,8 +192,8 @@ redcap_codebook <- function(url="https://redcap.rn.dk/api/", ...) {
 #' @export
 #'
 #' @examples
-#' redcaå_allocate(file_location = "/home/test.csv")
-redcap_allocate <- function(file_location, export_dir = "/Users/andersaskeland/Documents/Multisite (Local)/5 - Redcap/Import/") {
+#' redcap_manual_allocate(file_location = "/home/test.csv")
+redcap_manual_allocate <- function(file_location, export_dir = "/Users/andersaskeland/Documents/Multisite (Local)/5 - Redcap/Import/") {
 
     # Read file
     df <- readr::read_csv(file = file_location, col_types = readr::cols())
@@ -222,14 +224,14 @@ redcap_allocate <- function(file_location, export_dir = "/Users/andersaskeland/D
 
 #' Automatically transfer participant from allocation group to supplied group
 #'
-#' @param participant_id
-#' @param url
-#' @param ...
+#' @param participant_id int | Participant you want to transfer
+#' @param url str | Url for redcap server
+#' @param ... Extra parameters
 #'
-#' @return
 #' @export
 #'
 #' @examples
+#' redcap_allocate_automatic(3030)
 redcap_allocate_automatic <- function(participant_id, url="https://redcap.rn.dk/api/", ...) {
 
     # Error out if ID not supported

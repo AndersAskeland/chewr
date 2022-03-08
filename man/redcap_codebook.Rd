@@ -9,6 +9,8 @@ redcap_codebook(url = "https://redcap.rn.dk/api/", ...)
 }
 \arguments{
 \item{url}{string | Link to API website}
+
+\item{...}{Extra arguments}
 }
 \value{
 tibble

@@ -1,13 +1,10 @@
-
-# 1. Exported -------------------------------------------------------------
-
-
+# 1. Combine data (EXPORT) -------------------------------------------------------------
 #' Combine data from labka export with redcap data.
 #'
 #' @param labka_data Tibble | Tibble of lakba data
 #' @param redcap_data Tibble | Tibble of redcap data
 #' @param identifier bool | Whether or not to include CPR number in the return. You must have CPR number in your data when combining data with labka data.
-#'
+#' @usage
 #' @note You need to have CPR number included in both the labka and redcap data to use this function (left join is based on CPR number and date).
 #' @return tibble
 #' @export
@@ -40,6 +37,30 @@ combine_redcap_labka <- function(labka_data, redcap_data, identifier = FALSE) {
     return(combined)
 }
 
+#' Creates annonymized data file based on existing data
+#'
+#' @param df
+#'
+#' @return
+#' @export
+#'
+#' @examples
+create_example_data <- function(df) {
+
+    # Extract data
+    rows <- nrow(df)
+
+    # Create tibble
+    random_df <- dplyr::tibble()
+
+    # Add column
+    random_stuff <- random::randomNumbers(n=rows, min = min())
+    random_df <- random_df %>%
+        tibble::add_column()
+
+
+}
+
 #' Simple save svg.
 #'
 #' @param path str | File path
@@ -49,13 +70,10 @@ combine_redcap_labka <- function(labka_data, redcap_data, identifier = FALSE) {
 #' @export
 #'
 #' @examples
+#' save_svg_wide("~/document/plot.png", plot)
 save_svg_wide <- function(path, plot) {
     ggplot2::ggsave(filename = path, device = "svg", plot = plot, width = 26, height = 8.5, dpi = 300)
 }
-
-
-
-
 
 
 # 2. Not exported ---------------------------------------------------------
@@ -79,13 +97,14 @@ null_if_na <- function(value) {
     }
 }
 
-#' Queries WHO API database
+#' Queries WHO API database and cleans data.
 #'
-#' @param query
+#' @param query str | Data to query
 #'
-#' @return
+#' @return tibble
 #'
 #' @examples
+#' who_query("obesity")
 who_query <- function(query) {
     # Check query
     if(query == "obesity") {
@@ -198,6 +217,7 @@ filter_nafld <- function(dat, token, arg = NULL) {
 #' @return bool
 #'
 #' @examples
+#' check_record("3030", "enrolment_arm_1")
 check_record <- function(participant_id, enrolment_arm, url="https://redcap.rn.dk/api/", ...) {
 
     # Extract ... args
@@ -242,12 +262,13 @@ check_record <- function(participant_id, enrolment_arm, url="https://redcap.rn.d
 
 #' Extracts label names from list.
 #'
-#' @param args
+#' @param args ... |
 #' @param ylab
 #'
 #' @return
 #'
 #' @examples
+#' labels <- extract_labs(args, ylab = comparison)
 extract_labs <- function(args, ylab) {
     # Title
     if(!exists("title", where = args, inherits = FALSE)) {
@@ -268,6 +289,15 @@ extract_labs <- function(args, ylab) {
 }
 
 
+#' Extracts theme arguments
+#'
+#' @param args ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' theme <- extract_theme(args)
 extract_theme <- function(args) {
     # Scale
     if(!exists("scale", where = args, inherits = FALSE)) {
@@ -293,6 +323,7 @@ extract_theme <- function(args) {
 #' @return df
 #'
 #' @examples
+#' rename_xlabs(df)
 rename_xlabs <- function(df) {
     # Rename groups
     df <- df %>%

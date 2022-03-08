@@ -1,6 +1,4 @@
-
-# 1. Plotting ----------------------------------------------------------------
-
+# 1. Plotting devices ----------------------------------------------------------------
 
 #' Custom ggplot2 geom that creates a scatter column plot. Good to use when
 #' comparing groups.
@@ -35,18 +33,18 @@ geom_scatter_column <- function(scale = 1, color = "#2b8cbe") {
     return(return_vector)
 }
 
-
 #' Custom ggplot2 geom that creates a Paried scatter column plot. Good to use
 #' in paired analyses.
 #'
-#' @param paired_variable
-#' @param scale
-#' @param color
+#' @param paired_variable str | Column to group on
+#' @param scale int | Size scale of coloumn
+#' @param color str | Color code
 #'
 #' @return
 #' @export
 #'
 #' @examples
+#' paired_variable = "participant_id", color = theme$color, scale = theme$scale
 geom_paired_column <- function(paired_variable, scale = 1, color = "#2b8cbe") {
 
     # Set mean bar
@@ -135,20 +133,8 @@ theme_chewr <- function(font="Helvetica", scale = 1) {
     return(theme)
 }
 
-#' Saves plot
-#'
-#' @param plot
-#'
-#' @return
-#' @export
-#'
-#' @examples
-save_chewr <- function(plot) {
 
-}
-
-
-# Automatic plots ---------------------------------------------------------
+# 2. Automatic plotting ---------------------------------------------------------
 
 
 #' Creates plot comparing different participant groups from the Multisite study.
@@ -163,7 +149,7 @@ save_chewr <- function(plot) {
 #' @export
 #'
 #' @examples
-#' plot_compare_baseline(data = redcap_data,
+#' autoplot_multisite_baseline(data = redcap_data,
 #'             filter = "baseline",
 #'             y_aes = "pdff_liver_cirle_mean",
 #'             order = c("control", "obese", "intervention"),
@@ -171,7 +157,7 @@ save_chewr <- function(plot) {
 #'             plot_subtitle = "Amount of fat in liver",
 #'             plot_xlab = "Groups",
 #'             plot_ylab = "% of liver fat")
-plot_multisite_baseline <- function(comparison, ...) {
+autoplot_multisite_baseline <- function(comparison, ...) {
 
     # Extract labels from ... argument
     args <- list(...)
@@ -203,15 +189,16 @@ plot_multisite_baseline <- function(comparison, ...) {
 #' Creates plot comparing different participant groups from the Multisite study.
 #' This function automatically compares weight loss
 #'
-#' @param comparison
-#' @param ...
+#' @param comparison str | Variable to compare
+#' @param ... Extra parameters
 #' @param exclude bool | If one should exclude participants that does not have 3 measurments.
 #'
 #' @return
 #' @export
 #'
 #' @examples
-plot_multisite_weight_loss <- function(comparison, df, exclude = TRUE, ...) {
+#' autoplot_multisite_weight_loss("bmi", df)
+autoplot_multisite_weight_loss <- function(comparison, df, exclude = TRUE, ...) {
 
     # Extract labels from ... argument
     args <- list(...)
@@ -229,7 +216,7 @@ plot_multisite_weight_loss <- function(comparison, df, exclude = TRUE, ...) {
 
     # Potentially exclude non-complete IDs
     if (exclude) {
-        df <- stat_difference(df, eval(parse(text = comparison)))
+        df <- stat_relative_change(df, eval(parse(text = comparison)))
     }
 
     # Plot
@@ -251,7 +238,7 @@ plot_multisite_weight_loss <- function(comparison, df, exclude = TRUE, ...) {
 }
 
 
-# 3. Animations -----------------------------------------------------------
+# 3. Animation plots -----------------------------------------------------------
 
 #' Creates animation object. Can be saved by using ```gganimate::anim_save() ```.
 #'
@@ -265,7 +252,7 @@ plot_multisite_weight_loss <- function(comparison, df, exclude = TRUE, ...) {
 #' gif <- anim_map_obesity(map = "world")
 #'
 #' # Save gif
-#' gganimate::anim_save(filename = "world.gif", animation = gif, path = "~/folder/")
+#' gganimate::anim_save(filename = "world.gif", animation = gif, path = "~/")
 anim_map_obesity <- function(map = "world", time = 20) {
 
     # Query WHO API
@@ -392,15 +379,16 @@ anim_map_obesity <- function(map = "world", time = 20) {
 
 #' Create plot
 #'
-#' @param country
-#' @param time
-#' @param width
-#' @param height
+#' @param country str | What country you want to plot or world
+#' @param time int | How long
+#' @param width int | Width resolution
+#' @param height int | Height resolution
 #'
 #' @return
 #' @export
 #'
 #' @examples
+#' anim_plot_obesity()
 anim_plot_obesity <- function(country = "world", time = 20, width = 1600, height = 1000) {
 
     # Query WHO API

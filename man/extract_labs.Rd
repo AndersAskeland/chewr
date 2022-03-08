@@ -7,6 +7,8 @@
 extract_labs(args, ylab)
 }
 \arguments{
+\item{args}{... |}
+
 \item{ylab}{}
 }
 \value{
@@ -14,4 +16,7 @@ extract_labs(args, ylab)
 }
 \description{
 Extracts label names from list.
+}
+\examples{
+labels <- extract_labs(args, ylab = comparison)
 }

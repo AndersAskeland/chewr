@@ -1,13 +1,16 @@
-#' Calculate difference and add as columns
+# 1. Calculate relative changes ----------------------------------------------------------------
+#' Calculate the relative change between different time points. For example
+#' difference in BMI at baseline compared to month 1.
 #'
 #' @param df df | Dataframe object
 #' @param column obj | Column name (Without quotes)
 #'
-#' @return
+#' @return Dataframe object
 #' @export
 #'
 #' @examples
-stat_difference <- function(df, column) {
+#' stat_relative_change(df, bmi)
+stat_relative_change <- function(df, column) {
 
     # Extracted paired samples w. all variables
     df_paired <- df %>%
@@ -35,4 +38,3 @@ stat_difference <- function(df, column) {
     # Return
     output
 }
-

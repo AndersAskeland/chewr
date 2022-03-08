@@ -15,3 +15,6 @@ df
 \description{
 Renames groups
 }
+\examples{
+rename_xlabs(df)
+}

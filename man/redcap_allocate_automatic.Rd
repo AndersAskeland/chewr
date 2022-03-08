@@ -11,11 +11,15 @@ redcap_allocate_automatic(
 )
 }
 \arguments{
-\item{...}{}
-}
-\value{
+\item{participant_id}{int | Participant you want to transfer}
 
+\item{url}{str | Url for redcap server}
+
+\item{...}{Extra parameters}
 }
 \description{
 Automatically transfer participant from allocation group to supplied group
+}
+\examples{
+redcap_allocate_automatic(3030)
 }

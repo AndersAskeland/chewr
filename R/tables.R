@@ -1,10 +1,13 @@
+# 1. General tables ----------------------------------------------------------------
 #' Extract participant information and writes it to an easy to view table.
+#'
+#' @param partcipant_id
 #'
 #' @return Data table graphic
 #' @export
 #'
 #' @examples
-#' extract_participant_end_parameters(3030)
+#' table_information(3030)
 table_information <- function(partcipant_id) {
 
     # Read data

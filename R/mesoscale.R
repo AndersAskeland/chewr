@@ -17,14 +17,3 @@ msd_read_table <- function(path) {
     return(df)
 }
 
-#' Read msd raw data
-#'
-#' @param path
-#'
-#' @return
-#' @export
-#'
-#' @examples
-msd_read_raw <- function(path) {
-    pass
-}
