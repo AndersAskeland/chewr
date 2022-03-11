@@ -66,7 +66,7 @@ redcap_read <- function(
     }
 
     # Combine field and record list
-    record_field_list <- purrr::prepend(list, record_list)
+    record_field_list <- purrr::prepend(field_list, record_list)
 
     # Generate complete request list
     form_data <- list(token = api_token,
