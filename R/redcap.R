@@ -28,10 +28,11 @@ redcap_read <- function(
 
     # Messages
     message(crayon::bold(crayon::blue("───"),
-                         crayon::white("Reading data from RedCap API"),
+                         crayon::white("Reading data from RedCap"),
                          crayon::blue("─────────────────────────────────")))
     message(crayon::white("Fields:"))
-    purrr::map(fields, ~message(paste0(crayon::blue("➤  "), crayon::blurred(crayon::white(.x)))))
+    purrr::map(fields, ~message(paste0(crayon::blue(" ➤ "), crayon::blurred(crayon::white(.x)))))
+    message("\n")
 
     # Collect dynamic dots (...)
     dots <- rlang::list2(...)
@@ -49,23 +50,23 @@ redcap_read <- function(
 
     # Generate field list
     field_names <- purrr::imap(fields, ~paste0("fields[", .y + 3, "]"))
-    field_list <- purrr::map(fields, ~ .x) %>%
-        purrr::set_names(field_names)
+    field_values <- purrr::map(fields, ~ .x)
+    field_list <- purrr::set_names(field_values, field_names)
 
     # Validate records
     # TODO
 
     # Generate record list
     if(is.null(records)) {
+        record_list <- NULL
+    } else {
         record_names <- purrr::imap(fields, ~paste0("records[", .y - 1, "]"))
         record_list <- purrr::map(records, ~ .x) %>%
             purrr::set_names(record_names)
-    } else {
-        record_list <- NULL
     }
 
     # Combine field and record list
-    record_field_list <- purrr::prepend(field_list, record_list)
+    record_field_list <- purrr::prepend(list, record_list)
 
     # Generate complete request list
     form_data <- list(token = api_token,
