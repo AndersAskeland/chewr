@@ -37,4 +37,6 @@ Imports:
     gifski,
     magick,
     svglite,
-    mapproj
+    mapproj,
+    checkmate,
+    crayon
