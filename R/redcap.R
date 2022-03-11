@@ -1,142 +1,133 @@
 # 1. Read data from redcap ----------------------------------------------------------------
-#' Extracts data from redcap (using RCurl) and writes it to a easy to use tibble.
+#' Extracts data from redcap (using httr) and writes it to a easy to use tibble.
 #' API token is collected using R studio api when function is run.
 #'
-#' @param columns vector | Can contain up to 20 different variables. Use function "redcap_codebook()" to view avaliable variables.
-#' @param column_types vector | Define column data types. Is in the order as displayed on redcap.
-#' @param url string | Link to API website
-#' @param identifier bool | Whether or not to include CPR number in the return. You must have CPR number in your data when combining data with labka data.
 #' @param ... Extra arguments
-#' @param filter str | Filter out given data. Currently supported: 1. NAFLD - Removes people with 5% or more liver fat in the control and obese group
-#'
+#' @param fields str | Single or several fields to read from redcap
+#' @param records num | Single or several records to read. Defaults to ALL
+#' @param redcap_uri str | Url to redcap API
+#' @param identifier bool | Whether or not to include CPR number in the return.
 #' @note If you wish to combine lakba with redcap data you must include CPR number (identifier = TRUE)
 #' @return tibble
 #' @export
 #'
 #' @examples
-#' read_redcap(columns = c("bmi", "weight"),
-#'             url = "https://redcap.rn.dk/api/")
-redcap_read <- function(columns=NULL, column_types=NULL, url="https://redcap.rn.dk/api/", identifier = FALSE, filter = FALSE, ...) {
+#' redcap_read(fields = c("bmi", "weight"),
+#'             records = c(1001, 1002))
+redcap_read <- function(
+        fields,
+        records = NULL,
+        redcap_uri = "https://redcap.rn.dk/api/",
+        identifier = FALSE, ...) {
 
-    # Extract ... args
-    args <- list(...)
+    # Check arguments
+    checkmate::assert_atomic(fields, any.missing = FALSE)
+    checkmate::assert_atomic(records, any.missing = FALSE)
+    checkmate::assert_character(redcap_uri, any.missing = FALSE, len = 1, pattern = "^(?:(?:http(?:s)?|ftp)://)(?:\\S+(?::(?:\\S)*)?@)?(?:(?:[a-z0-9\u00a1-\uffff](?:-)*)*(?:[a-z0-9\u00a1-\uffff])+)(?:\\.(?:[a-z0-9\u00a1-\uffff](?:-)*)*(?:[a-z0-9\u00a1-\uffff])+)*(?:\\.(?:[a-z0-9\u00a1-\uffff]){2,})(?::(?:\\d){2,5})?(?:/(?:\\S)*)?$")
+    checkmate::assert_logical(identifier, any.missing = FALSE, len = 1)
 
-    # Set API token
-    if(!exists("api_token", where = args, inherits = FALSE) || is.null(args$api_token)) {
-        api_token <- rstudioapi::askForPassword(prompt = "Please enter your API key")
+    # Messages
+    message(crayon::bold(crayon::blue("───"),
+                         crayon::white("Reading data from RedCap API"),
+                         crayon::blue("─────────────────────────────────")))
+    message(crayon::white("Fields:"))
+    purrr::map(fields, ~message(paste0(crayon::blue("➤  "), crayon::blurred(crayon::white(.x)))))
+
+    # Collect dynamic dots (...)
+    dots <- rlang::list2(...)
+
+    # Match arguments
+    if("api_token" %in% names(dots)) {
+        api_token <- dots$api_token
     } else {
-        api_token <- args$api_token
+        api_token <- rstudioapi::askForPassword(prompt = "Please enter your RedCap API key")
     }
 
-    # Check that columns are valid (they exist in the redcap codebook)
-    redcap_codes <- redcap_codebook(api_token = api_token)
-    columns_tidy <- columns
-    for(i in seq_along(columns)) {
-        if(!columns[i] %in% dplyr::pull(redcap_codes)) {
-            print(paste("The variable", columns[i], "does not exsist on redcap. Continuing without this variable."))
-            columns_tidy <- columns_tidy[-i]
-        }
+    # Validate fields
+    field_names <- redcap_codebook(api_token = api_token)
+    purrr::walk(fields, ~ifelse(.x %in% field_names$redcap_code, T, stop(paste(.x, "does not exist."))))
+
+    # Generate field list
+    field_names <- purrr::imap(fields, ~paste0("fields[", .y + 3, "]"))
+    field_list <- purrr::map(fields, ~ .x) %>%
+        purrr::set_names(field_names)
+
+    # Validate records
+    # TODO
+
+    # Generate record list
+    if(is.null(records)) {
+        record_names <- purrr::imap(fields, ~paste0("records[", .y - 1, "]"))
+        record_list <- purrr::map(records, ~ .x) %>%
+            purrr::set_names(record_names)
+    } else {
+        record_list <- NULL
     }
 
-    # Extract data via curl
-    export <- RCurl::postForm(
-        uri=url,
-        token=api_token,
-        content='record',
-        format='csv',
-        type='flat',
-        'fields[0]'='participant_id',
-        'fields[1]'='cpr_nummer',
-        'fields[2]'='visit_date_1',
-        'fields[3]'= null_if_na(columns_tidy[1]),
-        'fields[4]'= null_if_na(columns_tidy[2]),
-        'fields[5]'= null_if_na(columns_tidy[3]),
-        'fields[6]'= null_if_na(columns_tidy[4]),
-        'fields[7]'= null_if_na(columns_tidy[5]),
-        'fields[8]'= null_if_na(columns_tidy[6]),
-        'fields[9]'= null_if_na(columns_tidy[7]),
-        'fields[10]'= null_if_na(columns_tidy[8]),
-        'fields[11]'= null_if_na(columns_tidy[9]),
-        'fields[12]'= null_if_na(columns_tidy[10]),
-        'fields[13]'= null_if_na(columns_tidy[11]),
-        'fields[14]'= null_if_na(columns_tidy[12]),
-        'fields[15]'= null_if_na(columns_tidy[13]),
-        'fields[16]'= null_if_na(columns_tidy[14]),
-        'fields[18]'= null_if_na(columns_tidy[15]),
-        'fields[19]'= null_if_na(columns_tidy[16]),
-        'fields[20]'= null_if_na(columns_tidy[17]),
-        'fields[21]'= null_if_na(columns_tidy[18]),
-        'fields[22]'= null_if_na(columns_tidy[19]),
-        'fields[23]'= null_if_na(columns_tidy[20]),
-        'events[0]'='enrolment_arm_1',
-        'events[1]'='enrolment_arm_2',
-        'events[2]'='enrolment_arm_3',
-        'events[2]'='enrolment_arm_3',
-        'events[3]'='examination__week_arm_1',
-        'events[4]'='examination__week_arm_2',
-        'events[5]'='examination__week_arm_3',
-        'events[6]'='examination__week_arm_3b',
-        'events[7]'='examination__week_arm_3c',
-        rawOrLabel='raw',
-        rawOrLabelHeaders='raw',
-        exportCheckboxLabel='false',
-        exportSurveyFields='false',
-        exportDataAccessGroups='false',
-        returnFormat='csv',
-        .opts = list(ssl.verifypeer = TRUE)
-    )
+    # Combine field and record list
+    record_field_list <- purrr::prepend(field_list, record_list)
 
-    # Convert to tibble set CPR number, visit, and group.
-    dat <- readr::read_csv(file=export, col_types=column_types, show_col_types = FALSE) %>%
+    # Generate complete request list
+    form_data <- list(token = api_token,
+                     content = 'record',
+                     format = 'csv',
+                     type = 'flat',
+                     csvDelimiter = ',',
+                     'fields[0]'='participant_id',
+                     'fields[1]'='cpr_nummer',
+                     'fields[2]'='visit_date_1',
+                     'events[0]'='enrolment_arm_1',
+                     'events[1]'='enrolment_arm_2',
+                     'events[2]'='enrolment_arm_3',
+                     'events[2]'='enrolment_arm_3',
+                     'events[3]'='examination__week_arm_1',
+                     'events[4]'='examination__week_arm_2',
+                     'events[5]'='examination__week_arm_3',
+                     'events[6]'='examination__week_arm_3b',
+                     'events[7]'='examination__week_arm_3c',
+                     rawOrLabel = 'raw',
+                     rawOrLabelHeaders = 'raw',
+                     exportCheckboxLabel = 'false',
+                     exportSurveyFields = 'false',
+                     exportDataAccessGroups = 'false',
+                     returnFormat = 'csv') %>%
+        purrr::prepend(record_field_list)
+
+    # API request
+    httr::set_config(httr::config(ssl_verifypeer = TRUE))
+    request <- httr::POST(redcap_uri, body = form_data, encode = "form") %>%
+        httr::content(show_col_types = FALSE)
+
+    # Clean data and basic renaming
+    redcap_df <- request %>%
         dplyr::group_by(participant_id) %>%
-        tidyr::fill(cpr_nummer) %>%
+        tidyr::fill(dplyr::everything()) %>%
         dplyr::filter(!redcap_event_name == "enrolment_arm_1" &
                           !redcap_event_name == "enrolment_arm_2" &
                           !redcap_event_name == "enrolment_arm_3") %>%
         dplyr::mutate(visit = dplyr::case_when(redcap_event_name == "examination__week_arm_1" ~ "baseline",
-                                 redcap_event_name=="examination__week_arm_2" ~ "baseline",
-                                 redcap_event_name=="examination__week_arm_3" ~ "baseline",
-                                 redcap_event_name=="examination__week_arm_3b" ~ "month_1",
-                                 redcap_event_name=="examination__week_arm_3c" ~ "month_5"),
-                    group = dplyr::case_when(redcap_event_name == "examination__week_arm_1" ~ "control",
-                                 redcap_event_name=="examination__week_arm_2" ~ "obese",
-                                 redcap_event_name=="examination__week_arm_3" ~ "intervention",
-                                 redcap_event_name=="examination__week_arm_3b" ~ "intervention",
-                                 redcap_event_name=="examination__week_arm_3c" ~ "intervention")) %>%
+                                               redcap_event_name=="examination__week_arm_2" ~ "baseline",
+                                               redcap_event_name=="examination__week_arm_3" ~ "baseline",
+                                               redcap_event_name=="examination__week_arm_3b" ~ "month_1",
+                                               redcap_event_name=="examination__week_arm_3c" ~ "month_5"),
+                      group = dplyr::case_when(redcap_event_name == "examination__week_arm_1" ~ "control",
+                                               redcap_event_name=="examination__week_arm_2" ~ "obese",
+                                               redcap_event_name=="examination__week_arm_3" ~ "intervention",
+                                               redcap_event_name=="examination__week_arm_3b" ~ "intervention",
+                                               redcap_event_name=="examination__week_arm_3c" ~ "intervention")) %>%
         dplyr::select(-"redcap_event_name") %>%
         dplyr::rename(start_date = visit_date_1, cpr_number = cpr_nummer) %>%
-        dplyr::relocate(participant_id, cpr_number, start_date, group, visit)
+        dplyr::relocate(participant_id, cpr_number, start_date, group, visit) %>%
+        dplyr::ungroup()
 
-    # Filters data
-    if(filter == "NAFLD") {
-        print("Removing controls and obese participants that have NAFLD (>5% liver fat)")
-
-        if("pdff_liver_cirle_mean" %in% names(dat)) {
-            print("    >>> Filtered using circular ROI's")
-            dat <- filter_nafld(dat = dat,
-                                token = api_token,
-                                arg = "pdff_liver_cirle_mean")
-        } else if("pdff_liver_freehand" %in% names(dat)) {
-            print("    >>> Filtered using freehand ROI's")
-            dat <- filter_nafld(dat = dat,
-                                token = api_token,
-                                arg = "pdff_liver_freehand")
-        } else {
-            print("    >>> PDFF measurment is not found in supplied data.")
-            print("    >>> Automatically filtering on lusing circular ROI's")
-            dat <- filter_nafld(dat = dat,
-                                token = api_token)
-        }
-    }
-
-    # Check if function should return identifier (CPR number)
+    # Manage identifier (CPR-number)
     if(identifier == FALSE) {
-        dat <- dat %>%
+        redcap_df <- redcap_df %>%
             dplyr::select(-cpr_number)
     }
 
     # Return
-    return(dat)
+    redcap_df
 }
 
 

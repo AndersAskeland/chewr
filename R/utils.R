@@ -61,6 +61,8 @@ create_example_data <- function(df) {
 
 }
 
+
+
 #' Simple save svg.
 #'
 #' @param path str | File path
@@ -174,6 +176,7 @@ who_query <- function(query) {
     df_clean
 }
 
+
 #' Filters data on the basis of participants in the control and obese group should not have NAFLD.
 #'
 #' @param dat tibble | Data. I
@@ -185,6 +188,9 @@ who_query <- function(query) {
 #' @examples
 #' filter_nafld(dat = dat, token = "dasdsadas2239193219312", arg = "pdff_liver_cirle_mean")
 filter_nafld <- function(dat, token, arg = NULL) {
+
+    # Message
+    print("Removing controls and obese participants that have NAFLD (>5% liver fat)")
 
     # Create copy of data so to not overwrite it if arg is NULL
     dat_copy <- dat
