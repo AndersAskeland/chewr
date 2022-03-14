@@ -176,6 +176,16 @@ redcap_codebook <- function(url="https://redcap.rn.dk/api/", ...) {
 
 # 2. Import data to redcap ----------------------------------------------------------------
 
+#' Imports lakba data into redcap.
+#'
+#' @param labka_df
+#' @param redcap_uri
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 redcap_import_lakba <- function(labka_df, redcap_uri = "https://redcap.rn.dk/api/", ...) {
 
     # Collect dynamic dots (...)

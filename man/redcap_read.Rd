@@ -2,28 +2,25 @@
 % Please edit documentation in R/redcap.R
 \name{redcap_read}
 \alias{redcap_read}
-\title{Extracts data from redcap (using RCurl) and writes it to a easy to use tibble.
+\title{Extracts data from redcap (using httr) and writes it to a easy to use tibble.
 API token is collected using R studio api when function is run.}
 \usage{
 redcap_read(
-  columns = NULL,
-  column_types = NULL,
-  url = "https://redcap.rn.dk/api/",
+  fields = NULL,
+  records = NULL,
+  redcap_uri = "https://redcap.rn.dk/api/",
   identifier = FALSE,
-  filter = FALSE,
   ...
 )
 }
 \arguments{
-\item{columns}{vector | Can contain up to 20 different variables. Use function "redcap_codebook()" to view avaliable variables.}
+\item{fields}{str | Single or several fields to read from redcap}
 
-\item{column_types}{vector | Define column data types. Is in the order as displayed on redcap.}
+\item{records}{num | Single or several records to read. Defaults to ALL}
 
-\item{url}{string | Link to API website}
+\item{redcap_uri}{str | Url to redcap API}
 
-\item{identifier}{bool | Whether or not to include CPR number in the return. You must have CPR number in your data when combining data with labka data.}
-
-\item{filter}{str | Filter out given data. Currently supported: 1. NAFLD - Removes people with 5\% or more liver fat in the control and obese group}
+\item{identifier}{bool | Whether or not to include CPR number in the return.}
 
 \item{...}{Extra arguments}
 }
@@ -31,13 +28,13 @@ redcap_read(
 tibble
 }
 \description{
-Extracts data from redcap (using RCurl) and writes it to a easy to use tibble.
+Extracts data from redcap (using httr) and writes it to a easy to use tibble.
 API token is collected using R studio api when function is run.
 }
 \note{
 If you wish to combine lakba with redcap data you must include CPR number (identifier = TRUE)
 }
 \examples{
-read_redcap(columns = c("bmi", "weight"),
-            url = "https://redcap.rn.dk/api/")
+redcap_read(fields = c("bmi", "weight"),
+            records = c(1001, 1002))
 }

@@ -1,10 +1,11 @@
 # 1. Combine data (EXPORT) -------------------------------------------------------------
+
+
 #' Combine data from labka export with redcap data.
 #'
 #' @param labka_data Tibble | Tibble of lakba data
 #' @param redcap_data Tibble | Tibble of redcap data
 #' @param identifier bool | Whether or not to include CPR number in the return. You must have CPR number in your data when combining data with labka data.
-#' @usage
 #' @note You need to have CPR number included in both the labka and redcap data to use this function (left join is based on CPR number and date).
 #' @return tibble
 #' @export
@@ -13,7 +14,9 @@
 #' combine_redcap_labka(labka_data = labka_data,
 #'                      redcap_data = redcap_data,
 #'                      identifier = TRUE)
-combine_redcap_labka <- function(labka_data, redcap_data, identifier = FALSE) {
+combine_redcap_labka <- function(labka_data,
+                                 redcap_data,
+                                 identifier = FALSE) {
 
     # Check if data includes cpr_number
     if(!"cpr_number" %in% colnames(labka_data)) {
@@ -25,43 +28,19 @@ combine_redcap_labka <- function(labka_data, redcap_data, identifier = FALSE) {
     }
 
     # Combine redcap with labka_data
-    combined <- dplyr::left_join(redcap_data, labka_data, by = c("cpr_number" = "cpr_number", "start_date" = "date"))
+    combined <- dplyr::left_join(redcap_data,
+                                 labka_data, by = c("cpr_number" = "cpr_number",
+                                                    "start_date" = "date"))
 
     # Check if return identifer (CPR number)
     if(identifier == FALSE) {
-        dat <- combined %>%
+        combined <- combined %>%
             dplyr::select(-cpr_number)
     }
 
     # Return
-    return(combined)
+    combined
 }
-
-#' Creates annonymized data file based on existing data
-#'
-#' @param df
-#'
-#' @return
-#' @export
-#'
-#' @examples
-create_example_data <- function(df) {
-
-    # Extract data
-    rows <- nrow(df)
-
-    # Create tibble
-    random_df <- dplyr::tibble()
-
-    # Add column
-    random_stuff <- random::randomNumbers(n=rows, min = min())
-    random_df <- random_df %>%
-        tibble::add_column()
-
-
-}
-
-
 
 #' Simple save svg.
 #'
