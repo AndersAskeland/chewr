@@ -39,4 +39,5 @@ Imports:
     svglite,
     mapproj,
     checkmate,
-    crayon
+    crayon,
+    snakecase

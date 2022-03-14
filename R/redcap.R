@@ -1,4 +1,5 @@
-# 1. Read data from redcap ----------------------------------------------------------------
+# 1. Export data from redcap ----------------------------------------------------------------
+
 #' Extracts data from redcap (using httr) and writes it to a easy to use tibble.
 #' API token is collected using R studio api when function is run.
 #'
@@ -15,7 +16,7 @@
 #' redcap_read(fields = c("bmi", "weight"),
 #'             records = c(1001, 1002))
 redcap_read <- function(
-        fields,
+        fields = NULL,
         records = NULL,
         redcap_uri = "https://redcap.rn.dk/api/",
         identifier = FALSE, ...) {
@@ -37,7 +38,7 @@ redcap_read <- function(
     # Collect dynamic dots (...)
     dots <- rlang::list2(...)
 
-    # Match arguments
+    # Get API token / match arguments
     if("api_token" %in% names(dots)) {
         api_token <- dots$api_token
     } else {
@@ -131,7 +132,6 @@ redcap_read <- function(
     redcap_df
 }
 
-
 #' Extract available data variables from a redcap project.
 #' R studio API collects API key.
 #'
@@ -174,7 +174,88 @@ redcap_codebook <- function(url="https://redcap.rn.dk/api/", ...) {
     return(dat)
 }
 
-# 2. Allocation functions ----------------------------------------------------------------
+# 2. Import data to redcap ----------------------------------------------------------------
+
+redcap_import_lakba <- function(labka_df, redcap_uri = "https://redcap.rn.dk/api/", ...) {
+
+    # Collect dynamic dots (...)
+    dots <- rlang::list2(...)
+
+    # Get API token / match arguments
+    if("api_token" %in% names(dots)) {
+        api_token <- dots$api_token
+    } else {
+        api_token <- rstudioapi::askForPassword(prompt = "Please enter your RedCap API key")
+    }
+
+    # Get redcap data
+    redcap_df <- redcap_read(identifier = T)
+
+    # Combine redcap w. labka
+    combined_df <- combine_redcap_labka(labka_data = labka_df, redcap_data = redcap_df)
+
+    # Clean data for import
+    clean_df <- combined_df %>%
+        dplyr::rename(redcap_event_name = visit) %>%
+        dplyr::mutate(redcap_event_name = dplyr::case_when(
+            redcap_event_name == "baseline" & group == "control" ~ "examination__week_arm_1",
+            redcap_event_name=="baseline" & group == "obese" ~ "examination__week_arm_2",
+            redcap_event_name=="baseline" & group == "intervention" ~ "examination__week_arm_3",
+            redcap_event_name=="month_1" ~ "examination__week_arm_3b",
+            redcap_event_name=="month_5" ~ "examination__week_arm_3c")) %>%
+        dplyr::select(-c(cpr_number, start_date, group)) %>%
+        dplyr::rename_with(tolower) %>%
+        dplyr::rename_with(~stringr::str_replace(.x, "-", "_"))
+
+    # Import data
+    import <- RCurl::postForm(
+        uri = redcap_uri,
+        token=api_token,
+        content='record',
+        format='json',
+        type='flat',
+        format="csv",
+        overwriteBehavior='normal',
+        data=readr::format_csv(clean_df, na = "")
+    )
+
+    # Return
+    import
+}
+
+# 3. Randomize data ----------------------------------------------------------------
+
+#' Randomizes continuous data.
+#'
+#' @param df
+#'
+#' @return
+#' @export
+#'
+#' @examples
+redcap_anonymize_data <- function(df) {
+
+    # Remove date
+    df <- df %>%
+        dplyr::select(-start_date)
+
+    # Calculate values
+    numeric_columns_n <- length(dplyr::select_if(df, is.numeric))
+
+    # Anonymise all columns (except participant ID, group and visit)
+    random_df <- df %>%
+        dplyr::group_by(visit, group) %>%
+        dplyr::mutate(across(2:numeric_columns_n, ~runif(length(.x),
+                                                min(.x, na.rm = T),
+                                                max(.x, na.rm = T))))
+
+    # Return
+    random_df
+}
+
+
+# 4. Allocation functions ----------------------------------------------------------------
+
 #' Takes a redcap export file as input and changes redcap arm on participant
 #'
 #' @param export_dir str | Export file path
@@ -212,7 +293,6 @@ redcap_manual_allocate <- function(file_location, export_dir = "/Users/andersask
     # Print message
     message(message_text)
 }
-
 
 #' Automatically transfer participant from allocation group to supplied group
 #'
