@@ -8,10 +8,10 @@
 #' @export
 #'
 #' @examples
-#' read_labka_data(path = "~/Documents/Data (Local)/lakba-export_2021-06-01.xlsx",
+#' labka_read(path = "~/Documents/Data (Local)/lakba-export_2021-06-01.xlsx",
 #'                 file_type = "xlsx",
 #'                 indetifier = TRUE)
-labka_read_data <- function(path, file_type="xlsx", identifier = FALSE) {
+labka_read <- function(path, file_type="xlsx", identifier = FALSE) {
 
     # Read file (Currently only for XLXS - what I usually recieve from Simon (KBA).)
     if(file_type == "xlsx") {
