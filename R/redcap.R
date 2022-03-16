@@ -244,7 +244,7 @@ redcap_import_lakba <- function(labka_df, redcap_uri = "https://redcap.rn.dk/api
 #' @export
 #'
 #' @examples
-redcap_anonymize_data <- function(df, remove) {
+redcap_anonymize_data <- function(df, remove = NULL) {
 
     # Remove potential variables
     if(!is.null(remove)) {
