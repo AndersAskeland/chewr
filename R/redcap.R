@@ -252,16 +252,13 @@ redcap_anonymize_data <- function(df, remove = NULL) {
             dplyr::select(-all_of(remove))
     }
 
-    # Calculate values
-    numeric_columns_n <- length(dplyr::select_if(df, is.numeric))
-
     # Anonymise all columns (except participant ID, group and visit)
     random_df <- df %>%
         dplyr::group_by(visit, group) %>%
         dplyr::mutate(
-            dplyr::across(where(is.numeric) & !c(participant_id), ~runif(length(.x),
-                                                                         min(.x, na.rm = TRUE),
-                                                                         max(.x, na.rm = TRUE))))
+            dplyr::across(where(is.numeric) & !c(participant_id), ~sample(x = min(.x, na.rm = T):max(.x, na.rm = T),
+                                                                          size = length(.x),
+                                                                          replace = T)))
 
     # Return
     random_df
