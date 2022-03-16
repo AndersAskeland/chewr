@@ -238,16 +238,19 @@ redcap_import_lakba <- function(labka_df, redcap_uri = "https://redcap.rn.dk/api
 #' Randomizes continuous data.
 #'
 #' @param df
+#' @param remove vector of variables to be completly removed.
 #'
 #' @return
 #' @export
 #'
 #' @examples
-redcap_anonymize_data <- function(df) {
+redcap_anonymize_data <- function(df, remove) {
 
-    # Remove date
-    df <- df %>%
-        dplyr::select(-start_date)
+    # Remove potential variables
+    if(!is.null(remove)) {
+        df <- df %>%
+            dplyr::select(-all_of(remove))
+    }
 
     # Calculate values
     numeric_columns_n <- length(dplyr::select_if(df, is.numeric))
@@ -255,7 +258,7 @@ redcap_anonymize_data <- function(df) {
     # Anonymise all columns (except participant ID, group and visit)
     random_df <- df %>%
         dplyr::group_by(visit, group) %>%
-        dplyr::mutate(across(2:numeric_columns_n, ~runif(length(.x),
+        dplyr::mutate(dplyr::across(2:numeric_columns_n, ~runif(length(.x),
                                                 min(.x, na.rm = T),
                                                 max(.x, na.rm = T))))
 
