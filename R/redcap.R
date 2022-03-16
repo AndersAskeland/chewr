@@ -258,7 +258,10 @@ redcap_anonymize_data <- function(df, remove = NULL) {
         dplyr::mutate(
             dplyr::across(where(is.numeric) & !c(participant_id), ~sample(x = min(.x, na.rm = T):max(.x, na.rm = T),
                                                                           size = length(.x),
-                                                                          replace = T)))
+                                                                          replace = T))) %>%
+        dplyr::mutate(dplyr::across(participant_id, ~sample(.x))) %>%
+        dplyr::ungroup() %>%
+        dplyr::arrange(participant_id)
 
     # Return
     random_df
