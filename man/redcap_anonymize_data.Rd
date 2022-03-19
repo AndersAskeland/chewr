@@ -4,10 +4,10 @@
 \alias{redcap_anonymize_data}
 \title{Randomizes continuous data.}
 \usage{
-redcap_anonymize_data(df)
+redcap_anonymize_data(df, remove = NULL)
 }
 \arguments{
-\item{df}{}
+\item{remove}{vector of variables to be completly removed.}
 }
 \value{
 
