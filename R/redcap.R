@@ -202,7 +202,8 @@ redcap_import_lakba <- function(labka_df, redcap_uri = "https://redcap.rn.dk/api
     redcap_df <- redcap_read(identifier = T)
 
     # Combine redcap w. labka
-    combined_df <- combine_redcap_labka(labka_data = labka_df, redcap_data = redcap_df)
+    combined_df <- combine_redcap_labka(labka_data = labka_df,
+                                        redcap_data = redcap_df)
 
     # Clean data for import
     clean_df <- combined_df %>%
@@ -222,7 +223,57 @@ redcap_import_lakba <- function(labka_df, redcap_uri = "https://redcap.rn.dk/api
         uri = redcap_uri,
         token=api_token,
         content='record',
-        format='json',
+        type='flat',
+        format="csv",
+        overwriteBehavior='normal',
+        data=readr::format_csv(clean_df, na = "")
+    )
+
+    # Return
+    import
+}
+
+#' Import T1 fibrosis data into redcap
+#'
+#' @param t1_df
+#' @param redcap_uri
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+redcap_import_t1 <- function(file, redcap_uri = "https://redcap.rn.dk/api/", ...) {
+
+    # Collect dynamic dots (...)
+    dots <- rlang::list2(...)
+
+    # Get API token / match arguments
+    if("api_token" %in% names(dots)) {
+        api_token <- dots$api_token
+    } else {
+        api_token <- rstudioapi::askForPassword(prompt = "Please enter your RedCap API key")
+    }
+
+    # Read data
+    t1_df <- readr::read_csv2(file)
+
+    # Clean data
+    clean_df <- t1_df %>%
+        dplyr::mutate(redcap_event_name = dplyr::case_when(
+            redcap_event_name == "Examination - Week 0 (Arm 1: Control)" ~ "examination__week_arm_1",
+            redcap_event_name == "Examination - Week 0 (Arm 2: Obese)" ~ "examination__week_arm_2",
+            redcap_event_name == "Examination - Week 0 (Arm 3: Intervention)" ~ "examination__week_arm_3",
+            redcap_event_name == "Examination - Week 4 (Arm 3: Intervention)" ~ "examination__week_arm_3b",
+            redcap_event_name == "Examination - Week 20 (Arm 3: Intervention)" ~ "examination__week_arm_3c")) %>%
+        dplyr::rename_with(tolower) %>%
+        dplyr::rename_with(~stringr::str_replace(.x, "-", "_"))
+
+    # Import data
+    import <- RCurl::postForm(
+        uri = redcap_uri,
+        token=api_token,
+        content='record',
         type='flat',
         format="csv",
         overwriteBehavior='normal',

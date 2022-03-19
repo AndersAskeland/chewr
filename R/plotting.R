@@ -33,6 +33,51 @@ geom_scatter_column <- function(scale = 1, color = "#2b8cbe") {
     return(return_vector)
 }
 
+#' Testing w. arguments
+#'
+#' @param ...
+#' @param jitter_params
+#' @param mean_params
+#' @param errorbar_params
+#'
+#' @return
+#' @export
+#'
+#' @examples
+geom_test <- function(..., jitter.params = list(), meanbar.params = list(), errorbar.params = list()) {
+
+    # Extract parameters
+    params <- list(...)
+    jitter.params <- modifyList(params, jitter.params)
+
+    # Create jitter (Geom)
+    jitter <- do.call("geom_jitter", modifyList(
+        list(width = 0.15),
+        jitter.params))
+
+    # Create mean bar (Stat)
+    mean_bar <- do.call("stat_summary", modifyList(
+        list(mapping = ggplot2::aes(width = 0.1),
+             fun = "mean",
+             fun.min = "mean",
+             fun.max= "mean",
+             geom = "errorbar"),
+        meanbar.params))
+
+    # Create error bars (stat)
+    error_bars <- do.call("stat_summary", modifyList(
+        list(mapping = ggplot2::aes(width = 0.5),
+            geom = "errorbar",
+            fun.data = ggplot2::mean_sdl,
+            fun.args = list(mult = 1),
+            position = "dodge"),
+        errorbar.params))
+
+    # Return
+    list(jitter, mean_bar, error_bars)
+}
+
+
 #' Custom ggplot2 geom that creates a Paried scatter column plot. Good to use
 #' in paired analyses.
 #'
@@ -77,6 +122,9 @@ geom_paired_column <- function(paired_variable, scale = 1, color = "#2b8cbe") {
     return_vector <- c(mean_bar, error_bars, paired_lines, points)
     return(return_vector)
 }
+
+
+
 
 
 #' Custom theme for ggplot object.
