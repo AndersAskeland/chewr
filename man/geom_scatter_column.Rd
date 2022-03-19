@@ -5,7 +5,13 @@
 \title{Custom ggplot2 geom that creates a scatter column plot. Good to use when
 comparing groups.}
 \usage{
-geom_scatter_column(scale = 1, color = "#2b8cbe")
+geom_scatter_column(
+  mapping = NULL,
+  jitter.params = list(),
+  meanbar.params = list(),
+  errorbar.params = list(),
+  ...
+)
 }
 \value{
 ggplot geom
