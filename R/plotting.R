@@ -9,42 +9,7 @@
 #' @examples
 #' ggplot(data) +
 #'    geom_scatter_column()
-geom_scatter_column <- function(scale = 1, color = "#2b8cbe") {
-
-    # Set jitter
-    jitter <- ggplot2::geom_jitter(width = 0.15, colour = color, size = scale)
-
-    # Set mean bar
-    mean_bar <- ggplot2::stat_summary(mapping = ggplot2::aes(width = 0.1),
-                                      fun = "mean",
-                                      fun.min = "mean",
-                                      fun.max= "mean",
-                                      geom = "errorbar")
-
-    # Set error bars
-    error_bars <- ggplot2::stat_summary(mapping = ggplot2::aes(width = 0.5),
-                                        geom = "errorbar",
-                                        fun.data = ggplot2::mean_sdl,
-                                        fun.args = list(mult = 1),
-                                        position = "dodge")
-
-    # Return
-    return_vector <- c(jitter, mean_bar, error_bars)
-    return(return_vector)
-}
-
-#' Testing w. arguments
-#'
-#' @param ...
-#' @param jitter_params
-#' @param mean_params
-#' @param errorbar_params
-#'
-#' @return
-#' @export
-#'
-#' @examples
-geom_test <- function(..., jitter.params = list(), meanbar.params = list(), errorbar.params = list()) {
+geom_scatter_column <- function(mapping = NULL, jitter.params = list(), meanbar.params = list(), errorbar.params = list(), ...) {
 
     # Extract parameters
     params <- list(...)
@@ -53,7 +18,8 @@ geom_test <- function(..., jitter.params = list(), meanbar.params = list(), erro
     # Create jitter (Geom)
     jitter_function <- get("geom_jitter", asNamespace("ggplot2"))
     jitter <- do.call(jitter_function, modifyList(
-        list(width = 0.15),
+        list(width = 0.15,
+             mapping = mapping),
         jitter.params))
 
     # Create mean bar (Stat)
