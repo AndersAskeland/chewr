@@ -51,12 +51,14 @@ geom_test <- function(..., jitter.params = list(), meanbar.params = list(), erro
     jitter.params <- modifyList(params, jitter.params)
 
     # Create jitter (Geom)
-    jitter <- do.call("geom_jitter", modifyList(
+    jitter_function <- get("geom_jitter", asNamespace("ggplot2"))
+    jitter <- do.call(jitter_function, modifyList(
         list(width = 0.15),
         jitter.params))
 
     # Create mean bar (Stat)
-    mean_bar <- do.call("stat_summary", modifyList(
+    mean_function <- get("stat_summary", asNamespace("ggplot2"))
+    mean_bar <- do.call(mean_function, modifyList(
         list(mapping = ggplot2::aes(width = 0.1),
              fun = "mean",
              fun.min = "mean",
@@ -65,7 +67,8 @@ geom_test <- function(..., jitter.params = list(), meanbar.params = list(), erro
         meanbar.params))
 
     # Create error bars (stat)
-    error_bars <- do.call("stat_summary", modifyList(
+    error_function <- get("stat_summary", asNamespace("ggplot2"))
+    error_bars <- do.call(error_function, modifyList(
         list(mapping = ggplot2::aes(width = 0.5),
             geom = "errorbar",
             fun.data = ggplot2::mean_sdl,
