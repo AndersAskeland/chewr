@@ -40,4 +40,5 @@ Imports:
     mapproj,
     checkmate,
     crayon,
-    snakecase
+    snakecase,
+    stringr

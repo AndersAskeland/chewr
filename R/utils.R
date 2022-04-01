@@ -56,6 +56,17 @@ save_svg_wide <- function(path, plot) {
     ggplot2::ggsave(filename = path, device = "svg", plot = plot, width = 26, height = 8.5, dpi = 300)
 }
 
+cpr_number_formated <- function(df) {
+
+    # Add - to cpr
+    df <- df %>%
+        dplyr::transmute(cpr_nummer = purrr::map_chr(cpr_nummer, ~ paste0(substr(.x, 1, 6),
+                                                                          "-",
+                                                                          substr(.x, 7, 10))))
+
+    # Return
+    df
+}
 
 # 2. Not exported ---------------------------------------------------------
 
