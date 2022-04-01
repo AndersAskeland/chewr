@@ -47,7 +47,7 @@ redcap_read <- function(
 
     # Validate fields
     field_names <- redcap_codebook(api_token = api_token)
-    purrr::walk(fields, ~ifelse(any(stringr::str_starts(string = .x, pattern = field_names$redcap_code)), T, stop(paste(.x, "does not exist."))))
+    purrr::walk(fields, ~ifelse(any(stringr::str_starts(pattern = .x, string = field_names$redcap_code)), T, stop(paste(.x, "does not exist."))))
 
     # Generate field list
     field_names <- purrr::imap(fields, ~paste0("fields[", .y + 3, "]"))
