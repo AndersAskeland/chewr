@@ -92,10 +92,6 @@ geom_paired_column <- function(paired_variable, scale = 1, color = "#2b8cbe") {
     return(return_vector)
 }
 
-
-
-
-
 #' Custom theme for ggplot object.
 #'
 #' @param font str | Font type
@@ -107,47 +103,37 @@ geom_paired_column <- function(paired_variable, scale = 1, color = "#2b8cbe") {
 #' @examples
 #' ggplot(data) +
 #'    geom_scatter_column() +
-#'    theme_chewr(scale = 2)
-theme_chewr <- function(font="Helvetica", scale = 1) {
+#'    theme_chewr()
+theme_chewr <- function() {
 
-    # Set theme
-    theme <- ggplot2::theme(
-        # Set titles
-        plot.title = ggplot2::element_text(family=font,
-                                           size=24,
-                                           face="bold",
-                                           color="#222222"),
-        plot.subtitle = ggplot2::element_text(family=font,
-                                              size=15),
-        # Set ticks
-        axis.ticks = ggplot2::element_blank(),
-        axis.ticks.x = ggplot2::element_line(color="#222222"),
-        axis.ticks.length.x = ggplot2::unit(0.2, "cm"),
-        # Set axis stuff
-        axis.title = ggplot2::element_text(family=font,
-                                           size=15 * scale,
-                                           color="#222222"),
-        axis.title.y = ggplot2::element_text(margin=ggplot2::margin(r = 8)),
-        axis.title.x = ggplot2::element_text(margin=ggplot2::margin(t = 5)),
-        axis.text = ggplot2::element_text(family=font,
-                                          size=13 * scale,
-                                          color="#222222"),
-        axis.text.x = ggplot2::element_text(margin=ggplot2::margin(t = 5),
-                                            angle = 30,
-                                            hjust = 1),
-        axis.text.y = ggplot2::element_text(margin=ggplot2::margin(r = 5)),
-        axis.line.y = ggplot2::element_line(color="#222222"),
-        axis.line.x = ggplot2::element_line(color="#222222"),
-        # Background
-        panel.background = ggplot2::element_rect(fill = "#F6F6F8", colour = NA),
-        plot.background = ggplot2::element_rect(fill = "transparent", colour = NA),
-        # New grid
-        panel.grid.minor = ggplot2::element_blank(),
-        panel.grid.major.y = ggplot2::element_line(color="#cbcbcb"),
-        panel.grid.major.x = ggplot2::element_blank())
-
-    # Return
-    return(theme)
+    # Create new theme based on theme_minimal()
+    theme_chewr <- ggplot2::theme_minimal() +
+        ggplot2::theme(
+            # Text
+            text = ggplot2::element_text(family = "Helvetica"),
+            plot.title = ggplot2::element_text(face = "bold",
+                                               color = "#222222"),
+            # Axis
+            axis.ticks = ggplot2::element_blank(),
+            axis.ticks.x = ggplot2::element_line(color = "#222222"),
+            axis.ticks.length.x = ggplot2::unit(0.2, "cm"),
+            axis.title = ggplot2::element_text(color = "#222222"),
+            axis.title.y = ggplot2::element_text(margin = ggplot2::margin(r = 8)),
+            axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 5)),
+            axis.text = ggplot2::element_text(color = "#222222"),
+            axis.text.x = ggplot2::element_text(margin=ggplot2::margin(t = 5),
+                                                angle = 30,
+                                                hjust = 1),
+            axis.text.y = ggplot2::element_text(margin=ggplot2::margin(r = 5)),
+            axis.line.y = ggplot2::element_line(color="#222222"),
+            axis.line.x = ggplot2::element_line(color="#222222"),
+            # Background
+            panel.background = ggplot2::element_rect(fill = "#F6F6F8", colour = NA),
+            plot.background = ggplot2::element_rect(fill = "transparent", colour = NA),
+            # Grid
+            panel.grid.minor = ggplot2::element_blank(),
+            panel.grid.major.y = ggplot2::element_line(color="#cbcbcb"),
+            panel.grid.major.x = ggplot2::element_blank())
 }
 
 

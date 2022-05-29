@@ -203,7 +203,8 @@ redcap_import_lakba <- function(labka_df, redcap_uri = "https://redcap.rn.dk/api
 
     # Combine redcap w. labka
     combined_df <- combine_redcap_labka(labka_data = labka_df,
-                                        redcap_data = redcap_df)
+                                        redcap_data = redcap_df,
+                                        identifier = T)
 
     # Clean data for import
     clean_df <- combined_df %>%

@@ -22,7 +22,7 @@ labka_read <- function(path, file_type="xlsx", identifier = FALSE) {
     dat <- dat %>%
         dplyr::select(c(CPR, PT_DATO, ANALYSE_FORKORTELSE, SVAR_TAL)) %>%
         dplyr::rename(c(cpr_number = CPR, date = PT_DATO, analysis = ANALYSE_FORKORTELSE, value = SVAR_TAL)) %>%
-        dplyr::mutate(cpr_number = map_chr(cpr_number, ~str_replace(., "-", ""))) %>%
+        dplyr::mutate(cpr_number = purrr::map_chr(cpr_number, ~ stringr::str_replace(., "-", ""))) %>%
         tidyr::pivot_wider(names_from = analysis, values_from = value) %>%
         dplyr::select(-c("Projekt-in", "Projekt"))
 
