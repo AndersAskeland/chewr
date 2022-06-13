@@ -121,9 +121,6 @@ theme_chewr <- function() {
             axis.title.y = ggplot2::element_text(margin = ggplot2::margin(r = 8)),
             axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 5)),
             axis.text = ggplot2::element_text(color = "#222222"),
-            axis.text.x = ggplot2::element_text(margin=ggplot2::margin(t = 5),
-                                                angle = 30,
-                                                hjust = 1),
             axis.text.y = ggplot2::element_text(margin=ggplot2::margin(r = 5)),
             axis.line.y = ggplot2::element_line(color="#222222"),
             axis.line.x = ggplot2::element_line(color="#222222"),
@@ -133,9 +130,36 @@ theme_chewr <- function() {
             # Grid
             panel.grid.minor = ggplot2::element_blank(),
             panel.grid.major.y = ggplot2::element_line(color="#cbcbcb"),
-            panel.grid.major.x = ggplot2::element_blank())
+            panel.grid.major.x = ggplot2::element_blank(),
+        )
+
+    # Return
+    return(theme_chewr)
 }
 
+#' Sets axis text as angled or wrap.
+#'
+#' @param axis_text
+#'
+#' @return
+#' @export
+#'
+#' @examples
+label_text <- function(axis_text = "angled") {
+    # Set axis text format
+    if(axis_text == "angled"){
+        axis_text <- ggplot2::theme(axis.text.x =
+                                        ggplot2::element_text(margin = ggplot2::margin(t = 5),
+                                                              angle = 30,
+                                                              hjust = 1))
+    } else if(axis_text == "wrap") {
+        axis_text <- ggplot2::scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 10))
+    }
+
+    # Return
+    return(axis_text)
+
+}
 
 # 2. Automatic plotting ---------------------------------------------------------
 
