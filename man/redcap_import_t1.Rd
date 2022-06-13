@@ -9,9 +9,6 @@ redcap_import_t1(file, redcap_uri = "https://redcap.rn.dk/api/", ...)
 \arguments{
 \item{...}{}
 }
-\value{
-
-}
 \description{
 Import T1 fibrosis data into redcap
 }

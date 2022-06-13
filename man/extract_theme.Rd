@@ -9,9 +9,6 @@ extract_theme(args)
 \arguments{
 \item{args}{...}
 }
-\value{
-
-}
 \description{
 Extracts theme arguments
 }

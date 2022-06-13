@@ -14,9 +14,6 @@ autoplot_multisite_weight_loss(comparison, df, exclude = TRUE, ...)
 
 \item{...}{Extra parameters}
 }
-\value{
-
-}
 \description{
 Creates plot comparing different participant groups from the Multisite study.
 This function automatically compares weight loss

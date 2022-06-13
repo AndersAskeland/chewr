@@ -15,9 +15,6 @@ anim_plot_obesity(country = "world", time = 20, width = 1600, height = 1000)
 
 \item{height}{int | Height resolution}
 }
-\value{
-
-}
 \description{
 Create plot
 }

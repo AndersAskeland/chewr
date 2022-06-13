@@ -14,9 +14,6 @@ geom_paired_column(paired_variable, scale = 1, color = "#2b8cbe")
 
 \item{color}{str | Color code}
 }
-\value{
-
-}
 \description{
 Custom ggplot2 geom that creates a Paried scatter column plot. Good to use
 in paired analyses.

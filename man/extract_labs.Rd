@@ -11,9 +11,6 @@ extract_labs(args, ylab)
 
 \item{ylab}{}
 }
-\value{
-
-}
 \description{
 Extracts label names from list.
 }

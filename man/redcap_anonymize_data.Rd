@@ -9,9 +9,6 @@ redcap_anonymize_data(df, remove = NULL)
 \arguments{
 \item{remove}{vector of variables to be completly removed.}
 }
-\value{
-
-}
 \description{
 Randomizes continuous data.
 }

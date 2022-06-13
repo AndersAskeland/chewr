@@ -11,9 +11,6 @@ save_svg_wide(path, plot)
 
 \item{plot}{plot | Plot object to be saved}
 }
-\value{
-
-}
 \description{
 Simple save svg.
 }

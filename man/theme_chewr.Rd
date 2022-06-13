@@ -4,7 +4,7 @@
 \alias{theme_chewr}
 \title{Custom theme for ggplot object.}
 \usage{
-theme_chewr(font = "Helvetica", scale = 1)
+theme_chewr()
 }
 \arguments{
 \item{font}{str | Font type}
@@ -20,5 +20,5 @@ Custom theme for ggplot object.
 \examples{
 ggplot(data) +
    geom_scatter_column() +
-   theme_chewr(scale = 2)
+   theme_chewr()
 }

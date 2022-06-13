@@ -9,9 +9,6 @@ redcap_import_lakba(labka_df, redcap_uri = "https://redcap.rn.dk/api/", ...)
 \arguments{
 \item{...}{}
 }
-\value{
-
-}
 \description{
 Imports lakba data into redcap.
 }
