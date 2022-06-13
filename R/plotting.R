@@ -118,10 +118,7 @@ theme_chewr <- function() {
             axis.ticks.x = ggplot2::element_line(color = "#222222"),
             axis.ticks.length.x = ggplot2::unit(0.2, "cm"),
             axis.title = ggplot2::element_text(color = "#222222"),
-            axis.title.y = ggplot2::element_text(margin = ggplot2::margin(r = 8)),
-            axis.title.x = ggplot2::element_text(margin = ggplot2::margin(t = 5)),
             axis.text = ggplot2::element_text(color = "#222222"),
-            axis.text.y = ggplot2::element_text(margin=ggplot2::margin(r = 5)),
             axis.line.y = ggplot2::element_line(color="#222222"),
             axis.line.x = ggplot2::element_line(color="#222222"),
             # Background
