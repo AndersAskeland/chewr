@@ -113,6 +113,7 @@ theme_chewr <- function() {
             text = ggplot2::element_text(family = "Helvetica"),
             plot.title = ggplot2::element_text(face = "bold",
                                                color = "#222222"),
+            axis.title.x = ggplot2::element_blank(),
             # Axis
             axis.ticks = ggplot2::element_blank(),
             axis.ticks.x = ggplot2::element_line(color = "#222222"),
