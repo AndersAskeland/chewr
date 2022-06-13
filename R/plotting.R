@@ -142,6 +142,7 @@ theme_chewr <- function() {
 #' @export
 #'
 #' @examples
+#' label_text()
 label_text <- function(axis_text = "angled") {
     # Set axis text format
     if(axis_text == "angled"){

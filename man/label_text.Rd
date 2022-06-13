@@ -12,3 +12,6 @@ label_text(axis_text = "angled")
 \description{
 Sets axis text as angled or wrap.
 }
+\examples{
+label_text()
+}
