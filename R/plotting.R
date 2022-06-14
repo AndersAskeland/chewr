@@ -106,8 +106,18 @@ geom_paired_column <- function(paired_variable, scale = 1, color = "#2b8cbe") {
 #'    theme_chewr()
 theme_chewr <- function(...) {
 
+    # Collect dynamic dots (...)
+    dots <- rlang::list2(...)
+
+    # set base size
+    if("base_size" %in% names(dots)) {
+        base_size <- dots$base_size
+    } else {
+        base_size <- 11
+    }
+
     # Create new theme based on theme_minimal()
-    theme_chewr <- ggplot2::theme_minimal(...) +
+    theme_chewr <- ggplot2::theme_minimal(base_size = base_size) +
         ggplot2::theme(
             # Text
             text = ggplot2::element_text(family = "Helvetica"),
