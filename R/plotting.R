@@ -104,10 +104,10 @@ geom_paired_column <- function(paired_variable, scale = 1, color = "#2b8cbe") {
 #' ggplot(data) +
 #'    geom_scatter_column() +
 #'    theme_chewr()
-theme_chewr <- function() {
+theme_chewr <- function(...) {
 
     # Create new theme based on theme_minimal()
-    theme_chewr <- ggplot2::theme_minimal() +
+    theme_chewr <- ggplot2::theme_minimal(...) +
         ggplot2::theme(
             # Text
             text = ggplot2::element_text(family = "Helvetica"),
