@@ -20,10 +20,10 @@ labka_read <- function(path, file_type="xlsx", identifier = FALSE) {
 
     # Clean data
     dat <- dat %>%
-        dplyr::select(c(CPR, PT_DATO, ANALYSE_FORKORTELSE, SVAR_TAL, SVAR)) %>%
-        dplyr::mutate(svar_dot = stringr::str_replace_all(SVAR, ",", ".")) %>%
-        dplyr::mutate(SVAR_TAL = as.numeric(svar_dot)) %>%
-        dplyr::rename(c(cpr_number = CPR, date = PT_DATO, analysis = ANALYSE_FORKORTELSE, value = SVAR_TAL)) %>%
+        dplyr::select(c(CPR, PT_DATO, ANALYSE_FORKORTELSE, SVAR)) %>%
+        dplyr::mutate(SVAR = stringr::str_replace_all(SVAR, ",", ".")) %>%
+        dplyr::mutate(SVAR = as.numeric(SVAR)) %>%
+        dplyr::rename(c(cpr_number = CPR, date = PT_DATO, analysis = ANALYSE_FORKORTELSE, value = SVAR)) %>%
         dplyr::mutate(cpr_number = purrr::map_chr(cpr_number, ~ stringr::str_replace(., "-", ""))) %>%
         tidyr::pivot_wider(names_from = analysis, values_from = value) %>%
         dplyr::select(-c("Projekt-in", "Projekt"))
