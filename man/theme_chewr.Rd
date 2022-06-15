@@ -4,7 +4,7 @@
 \alias{theme_chewr}
 \title{Custom theme for ggplot object.}
 \usage{
-theme_chewr()
+theme_chewr(...)
 }
 \arguments{
 \item{font}{str | Font type}
