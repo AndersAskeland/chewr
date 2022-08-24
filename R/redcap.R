@@ -176,6 +176,65 @@ redcap_codebook <- function(url="https://redcap.rn.dk/api/", ...) {
 
 # 2. Import data to redcap ----------------------------------------------------------------
 
+#' Imports results from p3np analysis into redcap
+#'
+#' @param df
+#' @param redcap_uri
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+redcap_import_p3np <- function(p3np_df, redcap_uri = "https://redcap.rn.dk/api/", ...) {
+
+    # Collect dynamic dots (...)
+    dots <- rlang::list2()
+
+    # Get API token / match arguments
+    if("api_token" %in% names(dots)) {
+        api_token <- dots$api_token
+    } else {
+        api_token <- rstudioapi::askForPassword(prompt = "Please enter your RedCap API key")
+    }
+
+    # Get redcap data
+    redcap_df <- redcap_read(identifier = T)
+
+    # Combine data
+    combined_df <- combine_redcap_p3np(p3np_data = p3np_df,
+                                     redcap_data = redcap_df,
+                                     identifier = T)
+
+    # Clean data for import
+    clean_df <- combined_df %>%
+        dplyr::rename(redcap_event_name = visit) %>%
+        dplyr::mutate(redcap_event_name = dplyr::case_when(
+            redcap_event_name == "baseline" & group == "control" ~ "examination__week_arm_1",
+            redcap_event_name=="baseline" & group == "obese" ~ "examination__week_arm_2",
+            redcap_event_name=="baseline" & group == "intervention" ~ "examination__week_arm_3",
+            redcap_event_name=="month_1" ~ "examination__week_arm_3b",
+            redcap_event_name=="month_5" ~ "examination__week_arm_3c")) %>%
+        dplyr::select(-c(cpr_number, start_date, group, identifier)) %>%
+        dplyr::rename_with(tolower) %>%
+        dplyr::rename_with(~stringr::str_replace(.x, "-", "_"))
+
+    # Import data
+    import <- RCurl::postForm(
+        uri = redcap_uri,
+        token=api_token,
+        content='record',
+        type='flat',
+        format="csv",
+        overwriteBehavior='normal',
+        data=readr::format_csv(clean_df, na = "")
+    )
+
+    # Return
+    import
+}
+
+
 #' Imports lakba data into redcap.
 #'
 #' @param labka_df

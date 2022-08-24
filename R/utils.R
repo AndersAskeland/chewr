@@ -1,6 +1,5 @@
 # 1. Combine data (EXPORT) -------------------------------------------------------------
 
-
 #' Combine data from labka export with redcap data.
 #'
 #' @param labka_data Tibble | Tibble of lakba data
@@ -41,6 +40,28 @@ combine_redcap_labka <- function(labka_data,
     # Return
     combined
 }
+
+combine_redcap_p3np <- function(p3np_data,
+                                 redcap_data,
+                                 identifier = FALSE) {
+
+    # Combine redcap with labka_data
+    combined <- dplyr::left_join(redcap_data,
+                                 p3np_data, by = c("participant_id" = "patient_id",
+                                                   "group" = "group",
+                                                    "visit" = "visit"))
+
+    # Check if return identifer (CPR number)
+    if(identifier == FALSE) {
+        combined <- combined %>%
+            dplyr::select(-cpr_number)
+    }
+
+    # Return
+    combined
+}
+
+# 2 - Save files ----------------------------------------------------------
 
 #' Simple save svg.
 #'

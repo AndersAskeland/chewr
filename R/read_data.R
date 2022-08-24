@@ -1,3 +1,32 @@
+# 1. Read PIIINP ---------------------------------------------------------------
+
+#' Title
+#'
+#' @param path
+#'
+#' @return
+#' @export
+#'
+#' @examples
+read_p3np <- function(path = "/Users/andersaskeland/Documents/0 - Multisite/Storage (Local)/10 - Data/PIIINP/results.xlsx") {
+
+    # Open file
+    df <- readxl::read_xlsx(path = path, .name_repair = snakecase::to_snake_case)
+
+    # Clean data
+    df <- df %>%
+        dplyr::rename(p3np = `atellica_resultat_µg_l`) %>%
+        dplyr::select(-c(kasse, verical, horizontal, glasnummer)) %>%
+        dplyr::mutate(group = snakecase::to_snake_case(group)) %>%
+        dplyr::mutate(visit = snakecase::to_snake_case(visit))
+
+
+    # Return data
+    df
+}
+
+# 2 - Read Labka ----------------------------------------------------------
+
 #' Read Labka data and converts to tibble.
 #'
 #' @param path string | File location of Labka data
@@ -37,3 +66,4 @@ labka_read <- function(path, file_type="xlsx", identifier = FALSE) {
     # Return
     return(dat)
 }
+
