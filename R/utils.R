@@ -61,6 +61,47 @@ combine_redcap_p3np <- function(p3np_data,
     combined
 }
 
+combine_redcap_timp1 <- function(timp1_data,
+                                redcap_data,
+                                identifier = FALSE) {
+
+    # Combine redcap with labka_data
+    combined <- dplyr::left_join(redcap_data,
+                                 timp1_data, by = c("participant_id" = "patient_id",
+                                                   "group" = "group",
+                                                   "visit" = "visit"))
+
+    # Check if return identifer (CPR number)
+    if(identifier == FALSE) {
+        combined <- combined %>%
+            dplyr::select(-cpr_number)
+    }
+
+    # Return
+    combined
+}
+
+combine_redcap_insulin <- function(insulin_data,
+                                 redcap_data,
+                                 identifier = FALSE) {
+
+    # Combine redcap with labka_data
+    combined <- dplyr::left_join(redcap_data,
+                                 insulin, by = c("participant_id" = "patient_id",
+                                                    "group" = "group",
+                                                    "visit" = "visit"))
+
+    # Check if return identifer (CPR number)
+    if(identifier == FALSE) {
+        combined <- combined %>%
+            dplyr::select(-cpr_number)
+    }
+
+    # Return
+    combined
+}
+
+
 # 2 - Save files ----------------------------------------------------------
 
 #' Simple save svg.
