@@ -1,104 +1,23 @@
-# 1. Combine data (EXPORT) -------------------------------------------------------------
+# 1 - General -------------------------------------------------------------
 
-#' Combine data from labka export with redcap data.
+#' Format CPR number to have a "-".
 #'
-#' @param labka_data Tibble | Tibble of lakba data
-#' @param redcap_data Tibble | Tibble of redcap data
-#' @param identifier bool | Whether or not to include CPR number in the return. You must have CPR number in your data when combining data with labka data.
-#' @note You need to have CPR number included in both the labka and redcap data to use this function (left join is based on CPR number and date).
-#' @return tibble
+#' @param df
+#'
+#' @return
 #' @export
 #'
 #' @examples
-#' combine_redcap_labka(labka_data = labka_data,
-#'                      redcap_data = redcap_data,
-#'                      identifier = TRUE)
-combine_redcap_labka <- function(labka_data,
-                                 redcap_data,
-                                 identifier = FALSE) {
+cpr_number_formated <- function(df) {
 
-    # Check if data includes cpr_number
-    if(!"cpr_number" %in% colnames(labka_data)) {
-        print("There is no column for CPR number in labka data.")
-        stop()
-    } else if(!"cpr_number" %in% colnames(redcap_data)) {
-        print("There is no column for CPR number in redap data.")
-        stop()
-    }
-
-    # Combine redcap with labka_data
-    combined <- dplyr::left_join(redcap_data,
-                                 labka_data, by = c("cpr_number" = "cpr_number",
-                                                    "start_date" = "date"))
-
-    # Check if return identifer (CPR number)
-    if(identifier == FALSE) {
-        combined <- combined %>%
-            dplyr::select(-cpr_number)
-    }
+    # Add - to cpr
+    df <- df %>%
+        dplyr::transmute(cpr_number = purrr::map_chr(cpr_number, ~ paste0(substr(.x, 1, 6),
+                                                                          "-",
+                                                                          substr(.x, 7, 10))))
 
     # Return
-    combined
-}
-
-combine_redcap_p3np <- function(p3np_data,
-                                 redcap_data,
-                                 identifier = FALSE) {
-
-    # Combine redcap with labka_data
-    combined <- dplyr::left_join(redcap_data,
-                                 p3np_data, by = c("participant_id" = "patient_id",
-                                                   "group" = "group",
-                                                    "visit" = "visit"))
-
-    # Check if return identifer (CPR number)
-    if(identifier == FALSE) {
-        combined <- combined %>%
-            dplyr::select(-cpr_number)
-    }
-
-    # Return
-    combined
-}
-
-combine_redcap_timp1 <- function(timp1_data,
-                                redcap_data,
-                                identifier = FALSE) {
-
-    # Combine redcap with labka_data
-    combined <- dplyr::left_join(redcap_data,
-                                 timp1_data, by = c("participant_id" = "patient_id",
-                                                   "group" = "group",
-                                                   "visit" = "visit"))
-
-    # Check if return identifer (CPR number)
-    if(identifier == FALSE) {
-        combined <- combined %>%
-            dplyr::select(-cpr_number)
-    }
-
-    # Return
-    combined
-}
-
-combine_redcap_insulin <- function(insulin_data,
-                                 redcap_data,
-                                 identifier = FALSE) {
-
-    # Combine redcap with labka_data
-    combined <- dplyr::left_join(redcap_data,
-                                 insulin, by = c("participant_id" = "patient_id",
-                                                    "group" = "group",
-                                                    "visit" = "visit"))
-
-    # Check if return identifer (CPR number)
-    if(identifier == FALSE) {
-        combined <- combined %>%
-            dplyr::select(-cpr_number)
-    }
-
-    # Return
-    combined
+    df
 }
 
 
@@ -118,19 +37,9 @@ save_svg_wide <- function(path, plot) {
     ggplot2::ggsave(filename = path, device = "svg", plot = plot, width = 26, height = 8.5, dpi = 300)
 }
 
-cpr_number_formated <- function(df) {
 
-    # Add - to cpr
-    df <- df %>%
-        dplyr::transmute(cpr_nummer = purrr::map_chr(cpr_nummer, ~ paste0(substr(.x, 1, 6),
-                                                                          "-",
-                                                                          substr(.x, 7, 10))))
 
-    # Return
-    df
-}
-
-# 2. Not exported ---------------------------------------------------------
+# Not exported ---------------------------------------------------------
 
 #' Returns NULL if provided value is NA
 #'

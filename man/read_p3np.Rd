@@ -2,7 +2,7 @@
 % Please edit documentation in R/read_data.R
 \name{read_p3np}
 \alias{read_p3np}
-\title{Title}
+\title{Read PIIINP data and returns as tibble.}
 \usage{
 read_p3np(
  
@@ -10,8 +10,15 @@ read_p3np(
 )
 }
 \arguments{
-\item{path}{}
+\item{path}{str | Path to excel file with PIIINP results}
+}
+\value{
+tibble
 }
 \description{
-Title
+Read PIIINP data and returns as tibble.
+}
+\examples{
+# Read PIIINP data
+df <- read_p3np()
 }

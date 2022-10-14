@@ -1,22 +1,22 @@
-# 1. Export data from redcap ----------------------------------------------------------------
+# 1. Export from redcap ----------------------------------------------------------------
 
-#' Extracts data from redcap (using httr) and converts it to a tibble.
-#' API token is collected using R studio api when function is run, hence not
-#' collecting API token in RHistory.
+#' Extracts/exports data from redcap (using httr) and converts it to a tibble.
+#' API token is collected using R studio api when function is run (Avoids
+#' collecting API token in Rhistory).
 #'
-#' @param ... dots | Extra arguments
-#' @param fields str | Single or several fields to read from redcap
-#' @param records num | Single or several records to read. Defaults to ALL
-#' @param redcap_uri str | Url to redcap API
-#' @param identifier bool | Whether or not to include CPR number in the return.
-#'
+#' @param fields str or vec | Single field or vector of fields to export.
+#' @param records num | Single or several records to read. Defaults to ALL.
+#' @param redcap_uri str | URL to redcap API. Defaults to RN server.
+#' @param identifier bool | Whether or not to include CPR number in export.
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Extra arguments.
 #' @return tibble
 #' @export
 #'
 #' @examples
-#' redcap_read(fields = c("bmi", "weight"),
+#' # Export BMI and weight for participants 1001 and 1002. Is exported as tibble.
+#' df <- redcap_read(fields = c("bmi", "weight"),
 #'             records = c(1001, 1002))
-redcap_read <- function(
+redcap_export <- function(
         fields = NULL,
         records = NULL,
         redcap_uri = "https://redcap.rn.dk/api/",
@@ -28,13 +28,10 @@ redcap_read <- function(
     checkmate::assert_character(redcap_uri, any.missing = FALSE, len = 1, pattern = "^(?:(?:http(?:s)?|ftp)://)(?:\\S+(?::(?:\\S)*)?@)?(?:(?:[a-z0-9\u00a1-\uffff](?:-)*)*(?:[a-z0-9\u00a1-\uffff])+)(?:\\.(?:[a-z0-9\u00a1-\uffff](?:-)*)*(?:[a-z0-9\u00a1-\uffff])+)*(?:\\.(?:[a-z0-9\u00a1-\uffff]){2,})(?::(?:\\d){2,5})?(?:/(?:\\S)*)?$")
     checkmate::assert_logical(identifier, any.missing = FALSE, len = 1)
 
-    # Messages
-    message(crayon::bold(crayon::blue("───"),
-                         crayon::white("Reading data from RedCap"),
-                         crayon::blue("─────────────────────────────────")))
-    message(crayon::white("Fields:"))
-    purrr::map(fields, ~message(paste0(crayon::blue(" ➤ "), crayon::blurred(crayon::white(.x)))))
-    message("\n")
+    # Message
+    cli::cli_h1("Exporting data from RedCap")
+    cli::cli_h3("Fields")
+    purrr::walk(fields, ~cli::cli_bullets(c(">" = .x)))
 
     # Collect dynamic dots (...)
     dots <- rlang::list2(...)
@@ -46,9 +43,12 @@ redcap_read <- function(
         api_token <- rstudioapi::askForPassword(prompt = "Please enter your RedCap API key")
     }
 
-    # Validate fields
-    field_names <- redcap_codebook(api_token = api_token)
-    purrr::walk(fields, ~ifelse(any(stringr::str_starts(pattern = .x, string = field_names$redcap_code)), T, stop(paste(.x, "does not exist."))))
+    # Check api token has been entered
+    checkmate::assert_character(api_token, n.chars = 32)
+
+    # Validate that all fields exist on RedCap
+    field_names <- suppressMessages(redcap_export_field_list(api_token = api_token))
+    purrr::walk(fields, ~ifelse(any(stringr::str_starts(pattern = .x, string = field_names$export_field_name)), T, stop(paste(.x, "does not exist."))))
 
     # Generate field list
     field_names <- purrr::imap(fields, ~paste0("fields[", .y + 3, "]"))
@@ -62,7 +62,7 @@ redcap_read <- function(
     if(is.null(records)) {
         record_list <- NULL
     } else {
-        record_names <- purrr::imap(fields, ~paste0("records[", .y - 1, "]"))
+        record_names <- purrr::imap(records, ~paste0("records[", .y - 1, "]"))
         record_list <- purrr::map(records, ~ .x) %>%
             purrr::set_names(record_names)
     }
@@ -105,7 +105,7 @@ redcap_read <- function(
     # Clean data and basic renaming
     redcap_df <- request %>%
         dplyr::group_by(participant_id) %>%
-        tidyr::fill(dplyr::everything()) %>%
+        tidyr::fill(cpr_nummer) %>%
         dplyr::filter(!redcap_event_name == "enrolment_arm_1" &
                           !redcap_event_name == "enrolment_arm_2" &
                           !redcap_event_name == "enrolment_arm_3") %>%
@@ -133,74 +133,102 @@ redcap_read <- function(
     }
 
     # Return
+    cli::cli_h3("Status")
+    cli::cli_alert_success("Sucessfully exported {fields}.")
     redcap_df
 }
 
-#' Extract available data variables from a redcap project.
-#' R studio API collects API key.
+#' Extract field list from a redcap project.
+#' API token is collected using R studio api when function is run (Avoids
+#' collecting API token in Rhistory).
 #'
-#' @param url string | Link to API website
-#' @param ... Extra arguments
+#' @param redcap_uri str | URL to redcap API. Defaults to RN server.
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Extra arguments.
 #'
 #' @return tibble
 #' @export
 #'
 #' @examples
-#' redap_codebook(token = "dsadas8e218271732172313712",
-#'                url = "https://redcap.rn.dk/api/")
-redcap_codebook <- function(url="https://redcap.rn.dk/api/",
+#' # Extracts all code's from redcap and store them in tibble
+#' df <- redap_codebook()
+redcap_export_field_list <- function(redcap_uri="https://redcap.rn.dk/api/",
                             ...) {
 
-    # Extract args
-    args <- list(...)
+    # Check arguments
+    checkmate::assert_character(redcap_uri, any.missing = FALSE, len = 1, pattern = "^(?:(?:http(?:s)?|ftp)://)(?:\\S+(?::(?:\\S)*)?@)?(?:(?:[a-z0-9\u00a1-\uffff](?:-)*)*(?:[a-z0-9\u00a1-\uffff])+)(?:\\.(?:[a-z0-9\u00a1-\uffff](?:-)*)*(?:[a-z0-9\u00a1-\uffff])+)*(?:\\.(?:[a-z0-9\u00a1-\uffff]){2,})(?::(?:\\d){2,5})?(?:/(?:\\S)*)?$")
 
-    # Set API token
-    if(!exists("api_token", where = args, inherits = FALSE) || is.null(args$api_token)) {
-        api_token <- rstudioapi::askForPassword(prompt = "Please enter your API key")
+    # Message
+    cli::cli_h1("Exporting RedCap field list")
+
+    # Collect dynamic dots (...)
+    dots <- rlang::list2(...)
+
+    # Get API token / match arguments
+    if("api_token" %in% names(dots)) {
+        api_token <- dots$api_token
     } else {
-        api_token <- args$api_token
+        api_token <- rstudioapi::askForPassword(prompt = "Please enter your RedCap API key")
     }
 
-    # API call
-    export <- RCurl::postForm(
-        uri=url,
-        token=api_token,
-        content='exportFieldNames',
-        format='csv',
-        returnFormat='csv'
+    # Generate request list
+    form_data <- list(token=api_token,
+                     content='exportFieldNames',
+                     format='csv',
+                     returnFormat='csv'
     )
 
-    # Convert to tibble
-    dat <- readr::read_csv(file=export, show_col_types = FALSE) %>%
-        dplyr::select(export_field_name) %>%
-        dplyr::rename(redcap_code = export_field_name)
+
+    # API call
+    httr::set_config(httr::config(ssl_verifypeer = TRUE))
+    request <- httr::POST(redcap_uri, body = form_data, encode = "form") %>%
+        httr::content(show_col_types = FALSE) %>%
+        dplyr::select(export_field_name)
 
     # Return
-    return(dat)
+    cli::cli_h3("Status")
+    cli::cli_alert_success("Generated field list")
+    return(request)
 }
 
 #' Extract participant information and writes it to an easy to view table.
 #'
-#' @param partcipant_id
+#' @param partcipant_id int | Participant ID.
 #'
-#' @return Data table graphic
+#' @return tbl
 #' @export
 #'
 #' @examples
-#' table_information(3030)
-redcap_participant_info <- function(partcipant_id) {
+#' # Generate table for participant 3030.
+#' redcap_participant_info(3030)
+redcap_export_participant_info <- function(partcipant_id) {
 
-    # Read data
-    df <- redcap_read(fields = c("bmi", "weight", "whr",
+    # Check arguments
+    checkmate::assert_int(partcipant_id)
+
+    # Message
+    cli::cli_h1("Generating participant information for participant {partcipant_id}")
+
+    # Export data from RedCap
+    df <- suppressMessages(redcap_export(fields = c("bmi", "weight", "whr",
                                  "waist", "hip", "systolic_bp_avg",
                                  "diastolic_bp_avg", "pdff_fat_prelim",
-                                 "pdff_liver_cirle_mean", "pdff_pancreas_cirkle_mean",
-                                 "total_body_fat"))
+                                 "pdff_liver_cirle_mean",
+                                 "pdff_pancreas_cirkle_mean",
+                                 "total_body_fat"),
+                        records = partcipant_id))
+
+    # Convert variables
+    df <- df %>%
+        dplyr::mutate_at(dplyr::vars("bmi", "weight", "whr",
+                              "waist", "hip", "systolic_bp_avg",
+                              "diastolic_bp_avg", "pdff_fat_prelim",
+                              "pdff_liver_cirle_mean",
+                              "pdff_pancreas_cirkle_mean",
+                              "total_body_fat"), .funs = as.numeric)
+
 
     # Table
     table <- df %>%
-        dplyr::filter(participant_id == partcipant_id) %>%
-        dplyr::ungroup() %>%
         dplyr::select(-c(start_date, group, participant_id)) %>%
         gt::gt(groupname_col = "visit") %>%
         gt::tab_header(
@@ -251,198 +279,122 @@ redcap_participant_info <- function(partcipant_id) {
             total_body_fat = "Total fat (DEXA)")
 
     # Return
-    return(table)
+    cli::cli_h3("Status")
+    cli::cli_alert_success("Displaying participant info for {partcipant_id}")
+    table
 }
 
 
 # 2. Import data to redcap ----------------------------------------------------------------
 
-#' Imports results from p3np analysis into redcap
+#' Imports data into RedCap.
 #'
-#' @param df
-#' @param redcap_uri
-#' @param ...
+#' @param df tibble | Data frame to import into redcap. Supports data read using
+#' * read_labka()
+#' * read_ck18()
+#' * read_dxa()
+#' * read_p3np()
+#' * read_homa()
+#' * read_insulin()
+#' * read_timp1()
+#' @param redcap_uri str | URL to redcap API. Defaults to RN server.
+#' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Extra arguments.
+#' @param import str | Selection of which data to import. Selections:
+#' * labka
+#' * ck18
+#' * dxa
+#' * p3np or piiinp
+#' * homa
+#' * insulin
+#' * timp1
+#' @param overwrite str | Overwrite existing data on redcap or not. Selections:
+#' * normal
 #'
-#' @return
 #' @export
 #'
 #' @examples
-redcap_import_p3np <- function(p3np_df, redcap_uri = "https://redcap.rn.dk/api/", ...) {
-
-    # Collect dynamic dots (...)
-    dots <- rlang::list2()
-
-    # Get API token / match arguments
-    if("api_token" %in% names(dots)) {
-        api_token <- dots$api_token
-    } else {
-        api_token <- rstudioapi::askForPassword(prompt = "Please enter your RedCap API key")
-    }
-
-    # Get redcap data
-    redcap_df <- redcap_read(identifier = T)
-
-    # Combine data
-    combined_df <- combine_redcap_p3np(p3np_data = p3np_df,
-                                     redcap_data = redcap_df,
-                                     identifier = T)
-
-    # Clean data for import
-    clean_df <- combined_df %>%
-        dplyr::rename(redcap_event_name = visit) %>%
-        dplyr::mutate(redcap_event_name = dplyr::case_when(
-            redcap_event_name == "baseline" & group == "control" ~ "examination__week_arm_1",
-            redcap_event_name=="baseline" & group == "obese" ~ "examination__week_arm_2",
-            redcap_event_name=="baseline" & group == "intervention" ~ "examination__week_arm_3",
-            redcap_event_name=="month_1" ~ "examination__week_arm_3b",
-            redcap_event_name=="month_5" ~ "examination__week_arm_3c")) %>%
-        dplyr::select(-c(cpr_number, start_date, group, identifier)) %>%
-        dplyr::rename_with(tolower) %>%
-        dplyr::rename_with(~stringr::str_replace(.x, "-", "_"))
-
-    # Import data
-    import <- RCurl::postForm(
-        uri = redcap_uri,
-        token=api_token,
-        content='record',
-        type='flat',
-        format="csv",
-        overwriteBehavior='normal',
-        data=readr::format_csv(clean_df, na = "")
-    )
-
-    # Return
-    import
-}
-
-
-#' Imports results from p3np analysis into redcap
+#' # Read PIIINP data
+#' df_p3np <- read_p3np()
+#' redcap_import(df_p3np, import = "p3np")
 #'
-#' @param df
-#' @param redcap_uri
-#' @param ...
+#' # Read TIMP1 data
+#' df_timp1 <- read_timp1()
+#' redcap_import(df_timp1, import = "timp1")
 #'
-#' @return
-#' @export
+#' # Read LABKA data
+#' df_labka <- read_labka(path = "~/Documents/1 - Data/Multisite-Labka/lakba-export_2022-09-13.xlsx",
+#'                       identifier = T)
+#' redcap_import(df_labka, import = "labka")
 #'
-#' @examples
-redcap_import_timp1 <- function(timp1_df, redcap_uri = "https://redcap.rn.dk/api/", ...) {
-
-    # Collect dynamic dots (...)
-    dots <- rlang::list2()
-
-    # Get API token / match arguments
-    if("api_token" %in% names(dots)) {
-        api_token <- dots$api_token
-    } else {
-        api_token <- rstudioapi::askForPassword(prompt = "Please enter your RedCap API key")
-    }
-
-    # Get redcap data
-    redcap_df <- redcap_read(identifier = T)
-
-    # Combine data
-    combined_df <- dplyr::left_join(redcap_df,
-                                 timp1_df, by = c("participant_id" = "patient_id",
-                                                    "group" = "group",
-                                                    "visit" = "visit"))
-
-    # Clean data for import
-    clean_df <- combined_df %>%
-        dplyr::rename(redcap_event_name = visit) %>%
-        dplyr::mutate(redcap_event_name = dplyr::case_when(
-            redcap_event_name == "baseline" & group == "control" ~ "examination__week_arm_1",
-            redcap_event_name=="baseline" & group == "obese" ~ "examination__week_arm_2",
-            redcap_event_name=="baseline" & group == "intervention" ~ "examination__week_arm_3",
-            redcap_event_name=="month_1" ~ "examination__week_arm_3b",
-            redcap_event_name=="month_5" ~ "examination__week_arm_3c")) %>%
-        dplyr::select(-c(cpr_number, group, start_date)) %>%
-        dplyr::rename_with(tolower) %>%
-        dplyr::rename_with(~stringr::str_replace(.x, "-", "_"))
-
-    # Import data
-    import <- RCurl::postForm(
-        uri = redcap_uri,
-        token=api_token,
-        content='record',
-        type='flat',
-        format="csv",
-        overwriteBehavior='normal',
-        data=readr::format_csv(clean_df, na = "")
-    )
-
-    # Return
-    import
-
-    }
-
-redcap_import_insulin <- function(insulin_df, redcap_uri = "https://redcap.rn.dk/api/", ...) {
-
-    # Collect dynamic dots (...)
-    dots <- rlang::list2()
-
-    # Get API token / match arguments
-    if("api_token" %in% names(dots)) {
-        api_token <- dots$api_token
-    } else {
-        api_token <- rstudioapi::askForPassword(prompt = "Please enter your RedCap API key")
-    }
-
-    # Get redcap data
-    redcap_df <- redcap_read(identifier = T)
-
-    # Combine data
-    combined_df <- dplyr::left_join(redcap_df,
-                                    insulin_df, by = c("participant_id" = "patient_id",
-                                                     "group" = "group",
-                                                     "visit" = "visit"))
-
-    # Clean data for import
-    clean_df <- combined_df %>%
-        dplyr::rename(redcap_event_name = visit) %>%
-        dplyr::mutate(redcap_event_name = dplyr::case_when(
-            redcap_event_name == "baseline" & group == "control" ~ "examination__week_arm_1",
-            redcap_event_name=="baseline" & group == "obese" ~ "examination__week_arm_2",
-            redcap_event_name=="baseline" & group == "intervention" ~ "examination__week_arm_3",
-            redcap_event_name=="month_1" ~ "examination__week_arm_3b",
-            redcap_event_name=="month_5" ~ "examination__week_arm_3c")) %>%
-        dplyr::select(-c(cpr_number, group, start_date)) %>%
-        dplyr::rename_with(tolower) %>%
-        dplyr::rename_with(~stringr::str_replace(.x, "-", "_"))
-
-    # Import data
-    import <- RCurl::postForm(
-        uri = redcap_uri,
-        token=api_token,
-        content='record',
-        type='flat',
-        format="csv",
-        overwriteBehavior='normal',
-        data=readr::format_csv(clean_df, na = "")
-    )
-
-    # Return
-    import
-
-}
-
-
-
-#' Imports lakba data into redcap.
+#' # Read CK18
+#' df_ck18 <- read_ck18()
+#' redcap_import(df_ck18, import = "ck18")
 #'
-#' @param labka_df
-#' @param redcap_uri
-#' @param ...
-#'
-#' @return
-#' @export
-#'
-#' @examples
-redcap_import_lakba <- function(labka_df, redcap_uri = "https://redcap.rn.dk/api/", ...) {
+#' # Read insulin
+#' df_insulin <- read_insulin()
+#' redcap_import(df_insulin, import = "insulin")
+redcap_import <- function(df,
+                          import,
+                          redcap_uri = "https://redcap.rn.dk/api/",
+                          overwrite = 'normal', ...) {
+
+    # Check arguments
+    checkmate::assert_data_frame(df)
+    checkmate::assert_choice(import, c("piiinp", "p3np", "labka", "timp1", "ck18", "insulin", "homa"))
+    checkmate::assert_character(redcap_uri, any.missing = FALSE, len = 1, pattern = "^(?:(?:http(?:s)?|ftp)://)(?:\\S+(?::(?:\\S)*)?@)?(?:(?:[a-z0-9\u00a1-\uffff](?:-)*)*(?:[a-z0-9\u00a1-\uffff])+)(?:\\.(?:[a-z0-9\u00a1-\uffff](?:-)*)*(?:[a-z0-9\u00a1-\uffff])+)*(?:\\.(?:[a-z0-9\u00a1-\uffff]){2,})(?::(?:\\d){2,5})?(?:/(?:\\S)*)?$")
+    checkmate::assert_choice(overwrite, choices = c("normal"))
+
+    # Message
+    cli::cli_h1("Importing {import} into RedCap.")
 
     # Collect dynamic dots (...)
     dots <- rlang::list2(...)
 
+    # Import settings
+    if(import == "p3np" | import == "piiinp") {
+        combine_cols <- c("participant_id" = "participant_id",
+                          "group" = "group",
+                          "visit" = "visit")
+
+        data_variables <- c("p3np")
+    } else if(import == "ck18") {
+        combine_cols <- c("participant_id" = "participant_id",
+                          "group" = "group",
+                          "visit" = "visit")
+
+        data_variables <- c("ck18_absorbance_rep1", "ck18_absorbance_rep2", "ck18_concentration")
+    } else if(import == "homa") {
+        combine_cols <- c("participant_id" = "participant_id",
+                          "group" = "group",
+                          "visit" = "visit")
+
+        data_variables <- c("homa2_b", "homa2_s", "homa2_ir")
+    } else if(import == "insulin") {
+        combine_cols <- c("participant_id" = "participant_id",
+                          "group" = "group",
+                          "visit" = "visit")
+
+        data_variables <- c("c_peptid", "insulin")
+    } else if(import == "timp1") {
+        combine_cols <- c("participant_id" = "participant_id",
+                          "group" = "group",
+                          "visit" = "visit")
+
+        data_variables <- c("timp1_absorbance_rep1", "timp1_absorbance_rep2", "timp1_concentration")
+    } else if(import == "labka") {
+        combine_cols <- c("cpr_number" = "cpr_number",
+                          "start_date" = "start_date")
+
+        data_variables <- c("Asat", "Dtot25", "Alat", "Alb", "AMYL-P", "Basp",
+                            "Bili", "CRP", "Ftin", "Chol", "HDL-Chol", "LDL-Chol",
+                            "Crea", "Ld", "Thyr-scr", "TSH", "Tt4", "Tgly-nf",
+                            "eGFR2", "hegfr2", "Ggt", "Baso", "Eos", "Erc", "Evf",
+                            "MCV", "eAG", "Hb", "HbA1ci", "MCHC", "MCH", "Lkc",
+                            "Diff", "Lymf", "Im-gran", "Mono", "Neut", "Trc",
+                            "AT", "D-dim", "Fib", "APTT", "KFinr", "Glc", "Ldlref-nf",
+                            "Tt3", "LDL-Direkt")
+    }
+
     # Get API token / match arguments
     if("api_token" %in% names(dots)) {
         api_token <- dots$api_token
@@ -450,101 +402,53 @@ redcap_import_lakba <- function(labka_df, redcap_uri = "https://redcap.rn.dk/api
         api_token <- rstudioapi::askForPassword(prompt = "Please enter your RedCap API key")
     }
 
-    # Get redcap data
-    redcap_df <- redcap_read(identifier = T)
+    # Export RedCap data
+    redcap_df <- suppressMessages(redcap_export(identifier = TRUE,
+                                                api_token = api_token))
 
-    # Combine redcap w. labka
-    combined_df <- combine_redcap_labka(labka_data = labka_df,
-                                        redcap_data = redcap_df,
-                                        identifier = T)
+    # Combine RedCap and import data
+    combined_df <- dplyr::left_join(redcap_df, df,
+                                    by = combine_cols)
 
     # Clean data for import
-    clean_df <- combined_df %>%
+    import_df <- combined_df %>%
         dplyr::rename(redcap_event_name = visit) %>%
         dplyr::mutate(redcap_event_name = dplyr::case_when(
             redcap_event_name == "baseline" & group == "control" ~ "examination__week_arm_1",
             redcap_event_name=="baseline" & group == "obese" ~ "examination__week_arm_2",
             redcap_event_name=="baseline" & group == "intervention" ~ "examination__week_arm_3",
             redcap_event_name=="month_1" ~ "examination__week_arm_3b",
-            redcap_event_name=="month_5" ~ "examination__week_arm_3c")) %>%
-        dplyr::select(-c(cpr_number, start_date, group)) %>%
+            redcap_event_name=="month_5" ~ "examination__week_arm_3c",
+            redcap_event_name=="year_1" ~ "follow_up__year_1_arm_3")) %>%
+        dplyr::select(participant_id, redcap_event_name, data_variables) %>%
         dplyr::rename_with(tolower) %>%
         dplyr::rename_with(~stringr::str_replace(.x, "-", "_"))
 
-    # Import data
-    import <- RCurl::postForm(
-        uri = redcap_uri,
-        token=api_token,
-        content='record',
-        type='flat',
-        format="csv",
-        overwriteBehavior='normal',
-        data=readr::format_csv(clean_df, na = "")
-    )
+    # Generate complete request list
+    form_data <- list(token = api_token,
+                      content = 'record',
+                      format = 'csv',
+                      type = 'flat',
+                      overwriteBehavior = overwrite,
+                      data=readr::format_csv(import_df, na = "")
+                  )
+
+    # API request
+    httr::set_config(httr::config(ssl_verifypeer = TRUE))
+    request <- httr::POST(redcap_uri, body = form_data, encode = "form")
 
     # Return
-    import
+    cli::cli_h3("Status")
+    cli::cli_alert_success("Import of {import} data ended with {httr::http_status(request)$message}.")
 }
-
-#' Import T1 fibrosis data into redcap
-#'
-#' @param t1_df
-#' @param redcap_uri
-#' @param ...
-#'
-#' @return
-#' @export
-#'
-#' @examples
-redcap_import_t1 <- function(file, redcap_uri = "https://redcap.rn.dk/api/", ...) {
-
-    # Collect dynamic dots (...)
-    dots <- rlang::list2(...)
-
-    # Get API token / match arguments
-    if("api_token" %in% names(dots)) {
-        api_token <- dots$api_token
-    } else {
-        api_token <- rstudioapi::askForPassword(prompt = "Please enter your RedCap API key")
-    }
-
-    # Read data
-    t1_df <- readr::read_csv2(file)
-
-    # Clean data
-    clean_df <- t1_df %>%
-        dplyr::mutate(redcap_event_name = dplyr::case_when(
-            redcap_event_name == "Examination - Week 0 (Arm 1: Control)" ~ "examination__week_arm_1",
-            redcap_event_name == "Examination - Week 0 (Arm 2: Obese)" ~ "examination__week_arm_2",
-            redcap_event_name == "Examination - Week 0 (Arm 3: Intervention)" ~ "examination__week_arm_3",
-            redcap_event_name == "Examination - Week 4 (Arm 3: Intervention)" ~ "examination__week_arm_3b",
-            redcap_event_name == "Examination - Week 20 (Arm 3: Intervention)" ~ "examination__week_arm_3c")) %>%
-        dplyr::rename_with(tolower) %>%
-        dplyr::rename_with(~stringr::str_replace(.x, "-", "_"))
-
-    # Import data
-    import <- RCurl::postForm(
-        uri = redcap_uri,
-        token=api_token,
-        content='record',
-        type='flat',
-        format="csv",
-        overwriteBehavior='normal',
-        data=readr::format_csv(clean_df, na = "")
-    )
-
-    # Return
-    import
-}
-
-
 
 # 3. Randomize data ----------------------------------------------------------------
 
-#' Randomizes continuous data.
+#' Replaces data in RedCap df with random data.
 #'
-#' @param df
-#' @param remove vector of variables to be completly removed.
+#' @param df tibble | Data frame that contains data exported from RedCap using
+#' ```redcap_export()```.
+#' @param remove vec | Vector of variables to be completely removed. Default: NULL
 #'
 #' @return
 #' @export
@@ -552,19 +456,31 @@ redcap_import_t1 <- function(file, redcap_uri = "https://redcap.rn.dk/api/", ...
 #' @examples
 redcap_anonymize_data <- function(df, remove = NULL) {
 
+    # Check arguments
+    checkmate::assert_data_frame(df)
+
+    # Message
+    cli::cli_h1("Randomizing data points in {df}")
+
     # Remove potential variables
     if(!is.null(remove)) {
         df <- df %>%
             dplyr::select(-all_of(remove))
     }
 
+    # Remove groups visits and groups with no data
+    df %>%
+
+    sapply(df$t1_liver_circle_mean, function(x)all(is.na(x)))
+
     # Anonymise all columns (except participant ID, group and visit)
     random_df <- df %>%
         dplyr::group_by(visit, group) %>%
         dplyr::mutate(
-            dplyr::across(where(is.numeric) & !c(participant_id), ~sample(x = min(.x, na.rm = T):max(.x, na.rm = T),
-                                                                          size = length(.x),
-                                                                          replace = T))) %>%
+            dplyr::across(where(is.numeric) & !c(participant_id),
+                          ~sample(x = min(.x, na.rm = T):max(.x, na.rm = T),
+                                  size = length(.x),
+                                  replace = T))) %>%
         dplyr::mutate(dplyr::across(participant_id, ~sample(.x))) %>%
         dplyr::ungroup() %>%
         dplyr::arrange(participant_id)

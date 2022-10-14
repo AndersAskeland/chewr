@@ -41,4 +41,5 @@ Imports:
     checkmate,
     crayon,
     snakecase,
-    stringr
+    stringr,
+    cli

@@ -2,7 +2,7 @@
 % Please edit documentation in R/read_data.R
 \name{read_timp1}
 \alias{read_timp1}
-\title{Title}
+\title{Reads TIMP1 data}
 \usage{
 read_timp1(
  
@@ -10,8 +10,15 @@ read_timp1(
 )
 }
 \arguments{
-\item{path}{}
+\item{path}{str | Path to excel file with PIIINP results}
+}
+\value{
+tibble
 }
 \description{
-Title
+Reads TIMP1 data
+}
+\examples{
+# Read TIMP1 data
+df <- read_timp1()
 }

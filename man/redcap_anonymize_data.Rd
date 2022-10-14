@@ -2,13 +2,16 @@
 % Please edit documentation in R/redcap.R
 \name{redcap_anonymize_data}
 \alias{redcap_anonymize_data}
-\title{Randomizes continuous data.}
+\title{Replaces data in RedCap df with random data.}
 \usage{
 redcap_anonymize_data(df, remove = NULL)
 }
 \arguments{
-\item{remove}{vector of variables to be completly removed.}
+\item{df}{tibble | Data frame that contains data exported from RedCap using
+\code{redcap_export()}}
+
+\item{remove}{vec | Vector of variables to be completely removed. Default: NULL}
 }
 \description{
-Randomizes continuous data.
+Replaces data in RedCap df with random data.
 }

@@ -273,7 +273,7 @@ autoplot_multisite_weight_loss <- function(comparison, df, exclude = TRUE, ...) 
 }
 
 
-# 3. Animation plots -----------------------------------------------------------
+# 3. Animations -----------------------------------------------------------
 
 #' Creates animation object. Can be saved by using ```gganimate::anim_save() ```.
 #'
