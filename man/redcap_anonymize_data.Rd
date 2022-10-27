@@ -8,7 +8,7 @@ redcap_anonymize_data(df, remove = NULL)
 }
 \arguments{
 \item{df}{tibble | Data frame that contains data exported from RedCap using
-\code{redcap_export()}}
+\code{redcap_export()}.}
 
 \item{remove}{vec | Vector of variables to be completely removed. Default: NULL}
 }

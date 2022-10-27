@@ -42,4 +42,5 @@ Imports:
     crayon,
     snakecase,
     stringr,
-    cli
+    cli,
+    pdftools

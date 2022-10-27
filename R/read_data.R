@@ -47,7 +47,7 @@ read_p3np <- function(path = "/Users/andersaskeland/Documents/0 - Multisite/Stor
 #' @examples
 #' # Read DXA data
 #' df <- read_dxa()
-read_dxa <- function(path = "/Users/andersaskeland/Documents/1 - Data/multisite_dxa/multisite_DXA.xlsx") {
+read_dxa <- function(path = "/Users/andersaskeland/Documents/1 - Data/multisite_dexa/data_old.xlsx") {
 
     # Check arguments
     checkmate::assert_file(path)
@@ -270,12 +270,50 @@ read_homa <- function(path = "~/Documents/1 - Data/multisite_homa/homa_ir.csv") 
     cli::cli_h1("Reading HOMA IR data")
 
     # Read data
-    df <- readr::read_csv(path, name_repair = snakecase::to_snake_case, col_types = "iccdddddd") %>%
+    df <- readr::read_csv(path, name_repair = snakecase::to_snake_case, col_types =
+                              readr::cols(
+                                  participant_id = readr::col_double(),
+                                  visit = readr::col_character(),
+                                  group = readr::col_character(),
+                                  glc = readr::col_double(),
+                                  insulin = readr::col_double(),
+                                  homa_2_b = readr::col_double(),
+                                  homa_2_s = readr::col_double(),
+                                  homa_2_ir = readr::col_double()
+                              )) %>%
         dplyr::select(-c(glc, insulin)) %>%
         dplyr::rename(homa2_b = homa_2_b, homa2_s = homa_2_s, homa2_ir = homa_2_ir)
 
     # Return
     cli::cli_h3("Status")
     cli::cli_alert_success("Finished reading HOMA2")
+    df
+}
+
+# 8 - Read lihep -----------------------------------------------------------
+#' Reads lithium heparin data manually entered.
+#'
+#' @param path str | Path to data location
+#'
+#' @return
+#' @export
+#'
+#' @examples
+read_lihep <- function(path = "~/Documents/1 - Data/multisite_lihep/data.xlsx") {
+
+    # Check arguments
+    checkmate::assert_file(path)
+
+    # Message
+    cli::cli_h1("Reading Lithium heperain data")
+
+    # Read files
+    df <- readxl::read_xlsx(path) %>%
+        dplyr::mutate(visit = snakecase::to_snake_case(visit)) %>%
+        dplyr::select(-c(identifier, l, h, i))
+
+    # Return data
+    cli::cli_h3("Status")
+    cli::cli_alert_success("Finished reading Labka data")
     df
 }

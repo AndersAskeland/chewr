@@ -307,6 +307,7 @@ redcap_export_participant_info <- function(partcipant_id) {
 #' * homa
 #' * insulin
 #' * timp1
+#' * lihep
 #' @param overwrite str | Overwrite existing data on redcap or not. Selections:
 #' * normal
 #'
@@ -340,7 +341,7 @@ redcap_import <- function(df,
 
     # Check arguments
     checkmate::assert_data_frame(df)
-    checkmate::assert_choice(import, c("piiinp", "p3np", "labka", "timp1", "ck18", "insulin", "homa"))
+    checkmate::assert_choice(import, c("piiinp", "p3np", "labka", "timp1", "ck18", "insulin", "homa", "lihep"))
     checkmate::assert_character(redcap_uri, any.missing = FALSE, len = 1, pattern = "^(?:(?:http(?:s)?|ftp)://)(?:\\S+(?::(?:\\S)*)?@)?(?:(?:[a-z0-9\u00a1-\uffff](?:-)*)*(?:[a-z0-9\u00a1-\uffff])+)(?:\\.(?:[a-z0-9\u00a1-\uffff](?:-)*)*(?:[a-z0-9\u00a1-\uffff])+)*(?:\\.(?:[a-z0-9\u00a1-\uffff]){2,})(?::(?:\\d){2,5})?(?:/(?:\\S)*)?$")
     checkmate::assert_choice(overwrite, choices = c("normal"))
 
@@ -359,25 +360,21 @@ redcap_import <- function(df,
         data_variables <- c("p3np")
     } else if(import == "ck18") {
         combine_cols <- c("participant_id" = "participant_id",
-                          "group" = "group",
                           "visit" = "visit")
 
         data_variables <- c("ck18_absorbance_rep1", "ck18_absorbance_rep2", "ck18_concentration")
     } else if(import == "homa") {
         combine_cols <- c("participant_id" = "participant_id",
-                          "group" = "group",
                           "visit" = "visit")
 
         data_variables <- c("homa2_b", "homa2_s", "homa2_ir")
     } else if(import == "insulin") {
         combine_cols <- c("participant_id" = "participant_id",
-                          "group" = "group",
                           "visit" = "visit")
 
         data_variables <- c("c_peptid", "insulin")
     } else if(import == "timp1") {
         combine_cols <- c("participant_id" = "participant_id",
-                          "group" = "group",
                           "visit" = "visit")
 
         data_variables <- c("timp1_absorbance_rep1", "timp1_absorbance_rep2", "timp1_concentration")
@@ -393,6 +390,11 @@ redcap_import <- function(df,
                             "Diff", "Lymf", "Im-gran", "Mono", "Neut", "Trc",
                             "AT", "D-dim", "Fib", "APTT", "KFinr", "Glc", "Ldlref-nf",
                             "Tt3", "LDL-Direkt")
+    } else if(import == "lihep") {
+        combine_cols <- c("participant_id" = "participant_id",
+                          "visit" = "visit")
+
+        data_variables <- c("asat", "alb", "amyl_p", "alat", "crp", "tsh")
     }
 
     # Get API token / match arguments
@@ -406,9 +408,18 @@ redcap_import <- function(df,
     redcap_df <- suppressMessages(redcap_export(identifier = TRUE,
                                                 api_token = api_token))
 
+    # Add group to data
+    df <- redcap_df %>%
+        dplyr::select(c(participant_id, group, visit)) %>%
+        dplyr::right_join(df)
+
     # Combine RedCap and import data
     combined_df <- dplyr::left_join(redcap_df, df,
-                                    by = combine_cols)
+                                    by = c("group", combine_cols))
+
+    # Remove not usable columns
+    combined_df <- dplyr::semi_join(combined_df, df,
+                                    by = c("participant_id", "visit"))
 
     # Clean data for import
     import_df <- combined_df %>%
@@ -420,7 +431,7 @@ redcap_import <- function(df,
             redcap_event_name=="month_1" ~ "examination__week_arm_3b",
             redcap_event_name=="month_5" ~ "examination__week_arm_3c",
             redcap_event_name=="year_1" ~ "follow_up__year_1_arm_3")) %>%
-        dplyr::select(participant_id, redcap_event_name, data_variables) %>%
+        dplyr::select(c(participant_id, redcap_event_name, data_variables)) %>%
         dplyr::rename_with(tolower) %>%
         dplyr::rename_with(~stringr::str_replace(.x, "-", "_"))
 
