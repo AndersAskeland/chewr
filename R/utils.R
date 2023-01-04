@@ -308,5 +308,32 @@ rename_xlabs <- function(df) {
     return(df)
 }
 
+#' Custom fill function. Will only fill if there only exists data in
+#' enrollment arm 1.
+#'
+#' @param column
+#' @param data
+#'
+#' @return
+#'
+#' @examples
+custom_fill <- function(column, data){
+
+    # Verify no NAs
+    is_na <- data %>%
+        dplyr::filter(redcap_event_name == "enrolment_arm_1") %>%
+        dplyr::select(column) %>%
+        purrr::map(~any(!is.na(.x))) %>%
+        unlist()
+
+    # Check
+    if(is_na) {
+        return(column)
+    } else {
+        return(NULL)
+    }
+
+}
+
 
 

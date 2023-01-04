@@ -388,10 +388,10 @@ anim_map_obesity <- function(map = "world", time = 20) {
 
     # Animation
     animation <- plot +
-        gganimate::transition_reveal(as.integer(year))
+        gganimate::transition_reveal(as.integer(year), keep_last = FALSE)
 
     # Gif settings
-    frames <- length(unique(df$year))
+    frames <- length(unique(df$year)) - 1
     fps <- (length(unique(df$year)) / time)
     width <- dplyr::if_else(map == "world", 1600, 1000)
     height <- dplyr::if_else(map == "world", 900, 1000)
