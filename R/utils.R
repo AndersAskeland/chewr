@@ -329,14 +329,15 @@ custom_fill <- function(data_point, column, data){
     # Fill data
     filled_data <- data %>%
         tidyr::fill(column) %>%
-        dplyr::select(sex) %>%
+        dplyr::select(column) %>%
         unlist()
 
+    print(is_na)
     # Check
     if(is_na) {
         return(filled_data)
     } else {
-        return(NULL)
+        return(data_point)
     }
 
 }

@@ -106,7 +106,7 @@ redcap_export <- function(
     redcap_df <- request %>%
         tidyr::fill(cpr_nummer) %>%
         dplyr::mutate(
-            dplyr::across(fields, ~custom_fill(.x,
+            dplyr::across(dplyr::all_of(fields), ~custom_fill(.x,
                                                dplyr::cur_column(),
                                                dplyr::cur_data()))) %>%
         dplyr::group_by(participant_id) %>%
