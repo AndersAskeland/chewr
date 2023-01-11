@@ -288,6 +288,7 @@ extract_theme <- function(args) {
 #' @param df
 #'
 #' @return df
+#' @export
 #'
 #' @examples
 #' rename_xlabs(df)
@@ -325,8 +326,6 @@ custom_fill <- function(data_point, column, data){
         dplyr::select(column) %>%
         purrr::map(~any(!is.na(.x))) %>%
         unlist()
-
-
 
     # Check
     if(is_na) {
