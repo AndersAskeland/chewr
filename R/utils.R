@@ -332,7 +332,6 @@ custom_fill <- function(data_point, column, data){
         dplyr::select(column) %>%
         unlist()
 
-    print(is_na)
     # Check
     if(is_na) {
         return(filled_data)

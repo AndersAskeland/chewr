@@ -102,7 +102,7 @@ redcap_export <- function(
     request <- httr::POST(redcap_uri, body = form_data, encode = "form") %>%
         httr::content(show_col_types = FALSE)
 
-    # Clean data and basic renaming
+    # Clean data and basic renaming (something is going amiss here)
     redcap_df <- request %>%
         tidyr::fill(cpr_nummer) %>%
         dplyr::mutate(
