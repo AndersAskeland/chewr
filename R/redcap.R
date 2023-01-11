@@ -106,8 +106,9 @@ redcap_export <- function(
     redcap_df <- request %>%
         tidyr::fill(cpr_nummer) %>%
         dplyr::mutate(
-            dplyr::across(fields, ~custom_fill(dplyr::cur_column(),
-                                                dplyr::cur_data()))) %>%
+            dplyr::across(fields, ~custom_fill(.x,
+                                               dplyr::cur_column(),
+                                               dplyr::cur_data()))) %>%
         dplyr::group_by(participant_id) %>%
         dplyr::filter(!redcap_event_name == "enrolment_arm_1" &
                           !redcap_event_name == "enrolment_arm_2" &
