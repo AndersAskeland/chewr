@@ -326,14 +326,17 @@ custom_fill <- function(data_point, column, data){
         purrr::map(~any(!is.na(.x))) %>%
         unlist()
 
-    # Fill data
-    filled_data <- data %>%
-        tidyr::fill(column) %>%
-        dplyr::select(column) %>%
-        unlist()
+
 
     # Check
     if(is_na) {
+        # Fill data
+        filled_data <- data %>%
+            tidyr::fill(column) %>%
+            dplyr::select(column) %>%
+            unlist()
+
+        # Return
         return(filled_data)
     } else {
         return(data_point)
