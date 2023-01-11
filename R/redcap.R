@@ -2,7 +2,7 @@
 
 #' Extracts/exports data from redcap (using httr) and converts it to a tibble.
 #' API token is collected using R studio api when function is run (Avoids
-#' collecting API token in Rhistory). This is an update to see if my renv is working.
+#' collecting API token in Rhistory).
 #'
 #' @param fields str or vec | Single field or vector of fields to export.
 #' @param records num | Single or several records to read. Defaults to ALL.
@@ -22,7 +22,6 @@ redcap_export <- function(
         redcap_uri = "https://redcap.rn.dk/api/",
         identifier = FALSE, ...) {
 
-    print("IS this working?")
     # Check arguments
     checkmate::assert_atomic(fields, any.missing = FALSE)
     checkmate::assert_atomic(records, any.missing = FALSE)
