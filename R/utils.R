@@ -320,7 +320,7 @@ rename_xlabs <- function(df) {
 custom_fill <- function(data_point, column, data){
 
     # Verify no NAs
-    is_na <- request %>%
+    is_na <- data %>%
         dplyr::filter(redcap_event_name == "enrolment_arm_1") %>%
         dplyr::select(column) %>%
         purrr::map(~any(!is.na(.x))) %>%
