@@ -22,6 +22,7 @@ redcap_export <- function(
         redcap_uri = "https://redcap.rn.dk/api/",
         identifier = FALSE, ...) {
 
+    print("IS this working?")
     # Check arguments
     checkmate::assert_atomic(fields, any.missing = FALSE)
     checkmate::assert_atomic(records, any.missing = FALSE)
