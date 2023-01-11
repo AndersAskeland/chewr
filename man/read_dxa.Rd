@@ -5,7 +5,7 @@
 \title{Reads DXA data and returns a tibble. TODO}
 \usage{
 read_dxa(
-  path = "/Users/andersaskeland/Documents/1 - Data/multisite_dxa/multisite_DXA.xlsx"
+  path = "/Users/andersaskeland/Documents/1 - Data/multisite_dexa/data_old.xlsx"
 )
 }
 \arguments{

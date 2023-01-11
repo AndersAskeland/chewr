@@ -5,10 +5,10 @@
 \title{Reads insulin and C-peptide data}
 \usage{
 read_insulin(
- 
-    results = "/Users/andersaskeland/Documents/0 - Multisite/Storage (Local)/10 - Data/Insulin_c-peptide/insulin_c-peptide.csv",
- 
-    layout = "/Users/andersaskeland/Documents/0 - Multisite/Storage (Local)/10 - Data/Insulin_c-peptide/sample_layout.xlsx"
+  results =
+    "/Users/andersaskeland/Documents/0 - Multisite/Storage (Local)/10 - Data/Insulin_c-peptide/insulin_c-peptide.csv",
+  layout =
+    "/Users/andersaskeland/Documents/0 - Multisite/Storage (Local)/10 - Data/Insulin_c-peptide/sample_layout.xlsx"
 )
 }
 \arguments{

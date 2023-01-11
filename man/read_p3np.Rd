@@ -5,8 +5,8 @@
 \title{Read PIIINP data and returns as tibble.}
 \usage{
 read_p3np(
- 
-    path = "/Users/andersaskeland/Documents/0 - Multisite/Storage (Local)/10 - Data/PIIINP/results.xlsx"
+  path =
+    "/Users/andersaskeland/Documents/0 - Multisite/Storage (Local)/10 - Data/PIIINP/results.xlsx"
 )
 }
 \arguments{

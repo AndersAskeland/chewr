@@ -5,8 +5,8 @@
 \title{Read CK18 data and returns as tibble.}
 \usage{
 read_ck18(
- 
-    path = "/Users/andersaskeland/Documents/0 - Multisite/Storage (Local)/10 - Data/CK-18/CK18_results.xlsx"
+  path =
+    "/Users/andersaskeland/Documents/0 - Multisite/Storage (Local)/10 - Data/CK-18/CK18_results.xlsx"
 )
 }
 \arguments{

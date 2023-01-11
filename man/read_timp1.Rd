@@ -5,8 +5,8 @@
 \title{Reads TIMP1 data}
 \usage{
 read_timp1(
- 
-    path = "/Users/andersaskeland/Documents/0 - Multisite/Storage (Local)/10 - Data/TIMP1/timp1_results.xlsx"
+  path =
+    "/Users/andersaskeland/Documents/0 - Multisite/Storage (Local)/10 - Data/TIMP1/timp1_results.xlsx"
 )
 }
 \arguments{

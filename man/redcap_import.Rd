@@ -33,6 +33,7 @@ redcap_import(
 \item homa
 \item insulin
 \item timp1
+\item lihep
 }}
 
 \item{redcap_uri}{str | URL to redcap API. Defaults to RN server.}

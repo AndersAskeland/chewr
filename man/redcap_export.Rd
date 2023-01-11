@@ -4,7 +4,7 @@
 \alias{redcap_export}
 \title{Extracts/exports data from redcap (using httr) and converts it to a tibble.
 API token is collected using R studio api when function is run (Avoids
-collecting API token in Rhistory).}
+collecting API token in Rhistory). This is an update to see if my renv is working.}
 \usage{
 redcap_export(
   fields = NULL,
@@ -31,7 +31,7 @@ tibble
 \description{
 Extracts/exports data from redcap (using httr) and converts it to a tibble.
 API token is collected using R studio api when function is run (Avoids
-collecting API token in Rhistory).
+collecting API token in Rhistory). This is an update to see if my renv is working.
 }
 \examples{
 # Export BMI and weight for participants 1001 and 1002. Is exported as tibble.
