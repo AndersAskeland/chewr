@@ -2,7 +2,7 @@
 
 #' Extracts/exports data from redcap (using httr) and converts it to a tibble.
 #' API token is collected using R studio api when function is run (Avoids
-#' collecting API token in Rhistory).
+#' collecting API token in Rhistory). This is an update.
 #'
 #' @param fields str or vec | Single field or vector of fields to export.
 #' @param records num | Single or several records to read. Defaults to ALL.
