@@ -108,7 +108,7 @@ redcap_export <- function(
         dplyr::mutate(
             dplyr::across(dplyr::all_of(fields), ~custom_fill(.x,
                                                dplyr::cur_column(),
-                                               dplyr::cur_data()))) %>%
+                                               request %>% tidyr::fill(cpr_nummer)))) %>%
         dplyr::group_by(participant_id) %>%
         dplyr::filter(!redcap_event_name == "enrolment_arm_1" &
                           !redcap_event_name == "enrolment_arm_2" &
@@ -301,6 +301,7 @@ redcap_export_participant_info <- function(partcipant_id) {
 #' * read_homa()
 #' * read_insulin()
 #' * read_timp1()
+#' * read_dxa()
 #' @param redcap_uri str | URL to redcap API. Defaults to RN server.
 #' @param ... <[`dynamic-dots`][rlang::dyn-dots]> Extra arguments.
 #' @param import str | Selection of which data to import. Selections:
@@ -345,7 +346,7 @@ redcap_import <- function(df,
 
     # Check arguments
     checkmate::assert_data_frame(df)
-    checkmate::assert_choice(import, c("piiinp", "p3np", "labka", "timp1", "ck18", "insulin", "homa", "lihep"))
+    checkmate::assert_choice(import, c("piiinp", "dxa", "dexa", "p3np", "labka", "timp1", "ck18", "insulin", "homa", "lihep"))
     checkmate::assert_character(redcap_uri, any.missing = FALSE, len = 1, pattern = "^(?:(?:http(?:s)?|ftp)://)(?:\\S+(?::(?:\\S)*)?@)?(?:(?:[a-z0-9\u00a1-\uffff](?:-)*)*(?:[a-z0-9\u00a1-\uffff])+)(?:\\.(?:[a-z0-9\u00a1-\uffff](?:-)*)*(?:[a-z0-9\u00a1-\uffff])+)*(?:\\.(?:[a-z0-9\u00a1-\uffff]){2,})(?::(?:\\d){2,5})?(?:/(?:\\S)*)?$")
     checkmate::assert_choice(overwrite, choices = c("normal"))
 
@@ -399,6 +400,12 @@ redcap_import <- function(df,
                           "visit" = "visit")
 
         data_variables <- c("asat", "alb", "amyl_p", "alat", "crp", "tsh")
+    } else if(import %in% c("dxa", "dexa")) {
+        combine_cols <- c("participant_id" = "participant_id",
+                          "visit" = "visit")
+        data_variables <- colnames(df %>% dplyr::select(-c(participant_id,
+                                                           visit)))
+
     }
 
     # Get API token / match arguments

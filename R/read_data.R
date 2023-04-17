@@ -317,3 +317,96 @@ read_lihep <- function(path = "~/Documents/1 - Data/multisite_lihep/data.xlsx") 
     cli::cli_alert_success("Finished reading Labka data")
     df
 }
+
+# 9 - Read DXA ------------------------------------------------------------
+
+
+#' Reads lithium heparin data manually entered.
+#'
+#' @param path str | Path to data location
+#'
+#' @return
+#' @export
+#'
+#' @examples
+read_dxa <- function(path = "~/Documents/1 - Data/multisite_dxa/multisite_DXA.xlsx") {
+
+    # Check arguments
+    checkmate::assert_file(path)
+
+    # Message
+    cli::cli_h1("Reading DXA data")
+
+    # Read files
+    df <- readxl::read_xlsx(path) %>%
+        dplyr::mutate("visit_date" = lubridate::as_date(SCAN_DATE)) %>%
+        dplyr::relocate(participant_id, visit_date) %>%
+        dplyr::mutate(participant_id = as.numeric(participant_id)) %>%
+        dplyr::filter(!is.na(TOTAL_FAT))
+
+     # Join on scan date
+    visit_dates <- redcap_export() %>%
+        dplyr::rename("visit_date" = "start_date") %>%
+        dplyr::filter(visit != "year_1") %>%
+        dplyr::filter(!is.na(visit_date))
+
+    joined <- dplyr::full_join(visit_dates, df, keep = TRUE)
+
+    missing_redcap <- joined %>%
+        dplyr::filter(!is.na(group) & is.na(participant_id.y)) %>%
+        dplyr::rename(participant_id = participant_id.x) %>%
+        dplyr::select(1:4)
+
+    missing_dxa <- joined %>%
+        dplyr::filter(is.na(group) & is.na(visit)) %>%
+        dplyr::rename(participant_id = participant_id.y) %>%
+        dplyr::select(-c(1:4))
+
+    missing_joined <- dplyr::left_join(missing_redcap, missing_dxa, by = "participant_id") %>%
+        dplyr::filter(!is.na(visit_date.y))
+
+    combined <- joined %>%
+        dplyr::filter(!(is.na(participant_id.x) | is.na(participant_id.y))) %>%
+        dplyr::rename(participant_id = participant_id.x) %>%
+        dplyr::select(-participant_id.y) %>%
+        dplyr::full_join(missing_joined) %>%
+        dplyr::rename(c(visit_date = visit_date.x,
+                        TISSUE_ANALYSIS_METHOD = TISSUE_ANALYSIS_METHOD.x,
+                        ROI_WIDTH = ROI_WIDTH.x,
+                        ROI_HEIGHT = ROI_HEIGHT.x
+                        )) %>%
+        dplyr::select(-c(visit_date.y,
+                         SEX,
+                         BIRTHDATE,
+                         WEIGHT,
+                         HEIGHT,
+                         ETHNICITY,
+                         MENOPAUSE_YEAR,
+                         BMI,
+                         ADJUSTED_AGE,
+                         ADJUSTED_LABEL,
+                         SCAN_DATE,
+                         FAT_STD.x,
+                         LEAN_STD.x,
+                         BRAIN_FAT.x,
+                         WATER_LBM.x,
+                         FAT_STD.y,
+                         LEAN_STD.y,
+                         BRAIN_FAT.y,
+                         WATER_LBM.y,
+                         ROI_HEIGHT.y,
+                         ROI_WIDTH.y,
+                         TISSUE_ANALYSIS_METHOD.y,
+                         ANDROID_NAME,
+                         GYNOID_NAME,
+                         VFAT_BODY_NAME,
+                         VFAT_OUTERWALL_NAME,
+                         VFAT_CAVITY_NAME,
+                         visit_date,
+                         group
+                         ))
+    # Return data
+    cli::cli_h3("Status")
+    cli::cli_alert_success("Finished reading Dxa data")
+    combined
+}
