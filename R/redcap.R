@@ -181,6 +181,7 @@ redcap_export_field_list <- function(redcap_uri="https://redcap.rn.dk/api/",
                      returnFormat='csv'
     )
 
+    print(form_data)
 
     # API call
     httr::set_config(httr::config(ssl_verifypeer = TRUE))
