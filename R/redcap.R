@@ -48,6 +48,7 @@ redcap_export <- function(
 
     # Validate that all fields exist on RedCap
     field_names <- suppressMessages(redcap_export_field_list(api_token = api_token))
+    print("After redcap_export_field_list")
     purrr::walk(fields, ~ifelse(any(stringr::str_starts(pattern = .x, string = field_names$export_field_name)), T, stop(paste(.x, "does not exist."))))
 
     # Generate field list
