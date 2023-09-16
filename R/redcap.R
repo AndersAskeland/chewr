@@ -405,6 +405,12 @@ redcap_import <- function(df,
         data_variables <- colnames(df %>% dplyr::select(-c(participant_id,
                                                            visit)))
 
+    } else if(import == "visceral") {
+        combine-cols <- c("participant_id" = "participant_id",
+                          "visit" = "visit")
+        data_variables <- c("visceral_mri",
+                            "subcutaneous_mri",
+                            "slice_nr")
     }
 
     # Get API token / match arguments
